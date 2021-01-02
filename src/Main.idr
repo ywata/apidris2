@@ -129,11 +129,11 @@ mutual
   convertClause (MkImpossible fc lhs) = MkDClauseNotSupported "MkIMpossible"
 
   convertField : IS.PField -> DField
-  convertField (MkField fc doc x y z ty) = MkDField (convertName z) (convertTerm ty)
+  convertField (MkField fc doc x y z ty) = MkDField doc (convertName z) (convertTerm ty)
 
 
   convertTypeDecl : IS.PTypeDecl -> DTypeDecl
-  convertTypeDecl (MkPTy fc n doc type) = MkDTy (convertName n) (convertTerm type)
+  convertTypeDecl (MkPTy fc n doc type) = MkDTy (convertName n) doc (convertTerm type)
 
 
   convertDataDecl : IS.PDataDecl -> DDataDecl
@@ -144,8 +144,8 @@ mutual
   convertDecl : PDecl -> DDecl
   convertDecl p@(PClaim fc x y xs z) = DClaim (convertTypeDecl z)
   convertDecl p@(PDef fc xs) = DDef (map convertClause xs)
-  convertDecl p@(PData fc doc x y) = DData (convertDataDecl y)
-  convertDecl p@(PRecord fc doc v n ps con fs)  = DRecord (convertName n) [] (convertName <$> con) (map convertField fs)
+  convertDecl p@(PData fc doc x y) = DData doc (convertDataDecl y)
+  convertDecl p@(PRecord fc doc v n ps con fs)  = DRecord doc (convertName n) [] (convertName <$> con) (map convertField fs)
   convertDecl p@(PMutual fc xs) = DMutual (map convertDecl xs)
   convertDecl p = DDeclNotImplemented ""
 

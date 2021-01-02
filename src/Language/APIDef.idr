@@ -87,15 +87,15 @@ mutual
   data DDecl : Type where
     DClaim : DTypeDecl -> DDecl
     DDef : List DClause -> DDecl
-    DData : DDataDecl -> DDecl
-    DRecord : APIDef.Name -> (params : List APIDef.Name) -> (conName : Maybe APIDef.Name) -> List DField -> DDecl
+    DData : (doc : String) -> DDataDecl -> DDecl
+    DRecord : (doc : String) -> APIDef.Name -> (params : List APIDef.Name) -> (conName : Maybe APIDef.Name) -> List DField -> DDecl
     DMutual : List DDecl -> DDecl
     DDeclNotImplemented: String -> DDecl
 
   ||| DField is a reduced version of PDField.
   public export  
   data DField : Type where
-    MkDField : APIDef.Name -> (ty : DTerm) -> DField
+    MkDField : (doc : String) -> APIDef.Name -> (ty : DTerm) -> DField
 
   ||| DTerm is a reduced version of PTerm.
   ||| This is one of the most central pert of APIDef.
@@ -125,7 +125,7 @@ mutual
   ||| Reduced vaersion of DTypeDecl
   public export   
   data DTypeDecl : Type where
-    MkDTy : (n : APIDef.Name) -> (type : DTerm) -> DTypeDecl
+    MkDTy : (n : APIDef.Name) -> (doc : String) -> (type : DTerm) -> DTypeDecl
 
   ||| Reduced vaersion of DDataDecl
   public export
@@ -172,8 +172,7 @@ mutual
 
   export
   Show DField where
-    show (MkDField x ty) = x ++ ":" ++ (show ty)
-
+    show (MkDField d x ty) = x ++ ":" ++ (show ty)
 
   export 
   Show DClause where
@@ -182,7 +181,7 @@ mutual
 
   export
   Show DTypeDecl where
-    show (MkDTy n type) = n ++ ":" ++ show type
+    show (MkDTy doc n type) = n ++ ":" ++ show type
 
   export
   Show DDataDecl where
@@ -193,8 +192,9 @@ mutual
   Show DDecl where
     show (DClaim x) = show x
     show (DDef xs) = sconcat " " $ map show xs
-    show (DData x) = show x
-    show (DRecord x params conName xs) = "record "  ++ x ++ show conName ++ (sconcat " " $ map show params) ++ (sconcat " " $ map show xs)
+    show (DData doc x) = show x
+    show (DRecord doc x params conName xs) 
+      = "record "  ++ x ++ show conName ++ (sconcat " " $ map show params) ++ (sconcat " " $ map show xs)
 
     show (DMutual xs) = sconcat " " $ map show xs
     show (DDeclNotImplemented msg) = "Not implemented:" ++ msg
