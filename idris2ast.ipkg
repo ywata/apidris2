@@ -1,0 +1,9 @@
+package idris2ast
+
+depends = base, idris2, contrib
+
+sourcedir = "src"
+
+main = Main
+executable = idris2ast
+
