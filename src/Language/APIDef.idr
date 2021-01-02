@@ -1,4 +1,4 @@
-module APIDef
+module Language.APIDef
 
 import Idris.Syntax as IS
 import Core.TT as CT

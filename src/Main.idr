@@ -5,8 +5,7 @@ import Idris.Parser
 
 import System.File
 
-import ParseSource
-import APIDef
+import Language.APIDef
 
 showConst : Constant -> String
 showConst (I x) = "I "
