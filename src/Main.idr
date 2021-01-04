@@ -1,5 +1,8 @@
 module Main
 
+import Data.List
+import Data.Maybe
+
 import Idris.Syntax
 import Idris.Parser
 
@@ -10,6 +13,7 @@ import Language.APIDef as APIDef
 import Idris.Syntax as IS
 import Core.TT as CT
 import Core.Name as CN
+
 
 
 showConst : Constant -> String
@@ -137,7 +141,8 @@ mutual
 
 
   convertDataDecl : IS.PDataDecl -> DDataDecl
-  convertDataDecl (MkPData fc tyname tycon opts datacons) = MkDData (convertName tyname) (convertTerm tycon) (map convertTypeDecl datacons)
+  convertDataDecl (MkPData fc tyname tycon opts datacons)
+    = MkDData (convertName tyname) (convertTerm tycon) (map convertTypeDecl datacons)
   convertDataDecl (MkPLater fc tyname tycon) = MkDataDeclNotSUpported "MkPLater"
 
   export
@@ -157,6 +162,11 @@ moduleToDataDefs : Module -> List APIDef.DDecl
 moduleToDataDefs (MkModule headerloc moduleNS imports documentation decls) = map convertDecl decls
 
 
+isKnownType : {ty : Type} -> {v : ty} -> (Type, ty) -> Bool
+isKnownType (DDecl, y) = True
+isKnownType (x, y) = False
+
+
 
 main : IO ()
 main = do 
@@ -164,9 +174,19 @@ main = do
           Right contents <- readFile fname
             | Left _ => putStr "File error"
           let Right m = runParser Nothing contents rule
-              | Left e => putStrLn $ show e
+              | Left e => putStrLn ""
 
-          putStrLn . sconcat "\n" $ map show $ moduleToDataDefs m
+          let apis = filter isJust . map ( searchRhs "API") . concatMap flatten $ moduleToDataDefs m
+          let apiIFs = map (apiInOut <$>) apis
+          putStrLn . sconcat "\n" $ map show apis
+          putStrLn . sconcat "\n" $ map show apiIFs
+--          putStrLn $ show (1,2)
+--          putStrLn . sconcat "\n" $ map (show ) $ moduleToDataDefs m
           pure ()
 
 
+
+tshow : (a : Type) -> (b : a) -> Int
+tshow Int y = y
+tshow String y = 2
+tshow _ _ = 3

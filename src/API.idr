@@ -17,16 +17,19 @@ def = IA1
 Name : Type
 Name = String
 
-data Id : Type -> Type where
-  Id' : rep -> Id rep
 mutual
-  UserId : Type
-  UserId = Id String
-  data User : Type where
-    U1 : Id String -> Name -> User
+  data Id : {ty :Type} -> Type -> Type where
+    Id' : rep -> Id rep
+  mutual
+    data User : Type where
+      U1 : Id String -> Name -> User
+
+    UserId : Type
+    UserId = Id {ty = User} String
 
 userAPI : API UserId User
 
+usersAPI : API () (List User)
 
 
 

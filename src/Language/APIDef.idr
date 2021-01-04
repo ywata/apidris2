@@ -1,6 +1,8 @@
 module Language.APIDef
 
+import Data.Maybe
 import Data.List
+import Data.Vect
 
 {-
 As source AST of Idris2 is too big to describe API.
@@ -39,8 +41,6 @@ data Const
     | CCharType
     | CDoubleType
     | CWorldType
-
-  
 
 
 export
@@ -134,14 +134,13 @@ mutual
     MkDataDeclNotSUpported : String -> DDataDecl
 
 
-
   export
   Show DTerm where
     show (DRef x) = x
     show (DPi Nothing argTy retTy) = show argTy ++ "->" ++ show retTy
     show (DPi (Just x) argTy retTy) = "Π" ++ x ++ ":" ++ show argTy ++ "->" ++ show retTy
     show (DLam x argTy scope) = quote("λ" ++ show x ++ "." ++ show argTy ++ "-->" ++ show scope)
-    show (DApp x y) = quote(show x) ++ " " ++  show y
+    show (DApp x y) = show x ++ quote( show y)
     show (DPrimVal (CI x)) = show x
     show (DPrimVal (CBI x)) = show x
     show (DPrimVal (CB8 x)) = show x
@@ -170,6 +169,7 @@ mutual
     show (DBracketed x) = show x
     show (DTermNotSupported msg) = "Not supported Term:" ++ msg
 
+  ||| Data field of record.
   export
   Show DField where
     show (MkDField d x ty) = x ++ ":" ++ (show ty)
@@ -181,20 +181,160 @@ mutual
 
   export
   Show DTypeDecl where
-    show (MkDTy doc n type) = n ++ ":" ++ show type
+    show (MkDTy n doc type) = n ++ ":" ++ show type
 
   export
   Show DDataDecl where
     show (MkDData tyname tycon datacons) = tyname ++ ":" ++ show tycon ++ " " ++ (sconcat " " $ map show datacons)
     show (MkDataDeclNotSUpported x) = "Not supported"
 
-  export
+  public export
   Show DDecl where
-    show (DClaim x) = show x
-    show (DDef xs) = sconcat " " $ map show xs
-    show (DData doc x) = show x
+    show (DClaim x) = "DClaim:" ++ show x
+    show (DDef xs) = "DDef:" ++ (sconcat " " $ map show xs)
+    show (DData doc x) = "DData:" ++ show x
     show (DRecord doc x params conName xs) 
-      = "record "  ++ x ++ show conName ++ (sconcat " " $ map show params) ++ (sconcat " " $ map show xs)
+      = "DRecord:"  ++ x ++ show conName ++ (sconcat " " $ map show params) ++ (sconcat " " $ map show xs)
 
-    show (DMutual xs) = sconcat " " $ map show xs
-    show (DDeclNotImplemented msg) = "Not implemented:" ++ msg
+    show (DMutual xs) = sconcat "\n" $ map show xs
+    show (DDeclNotImplemented msg) = "DDeclNotImplemented:" ++ "Not implemented:" ++ msg
+
+type1 : {ty : Type} -> (a : ty) -> Type
+type1 a = ty
+
+valType : {ty : Type} -> (a : ty) -> (Type, ty)
+valType a = (ty, a)
+
+public export
+interface Searchable s where
+  search' : {ty: Type} -> Name -> s ->  Maybe (Type, ty) -- whree ty
+
+test :  {ty:Type} -> (a : ty) -> Maybe ty
+test a = Just a
+
+dig : DTerm -> Maybe (DTerm, DTerm)
+dig (DRef x) = Nothing
+dig (DPi x argTy retTy) = Nothing
+dig (DLam x argTy scope) = Nothing
+dig (DApp (DApp x y) z) = Just (y, z)
+dig (DApp _ z) = Nothing
+dig (DPrimVal x) = Nothing
+dig DImplicit = Nothing
+dig DInfer = Nothing
+dig (DHole x) = Nothing
+dig DType = Nothing
+dig DUnit = Nothing
+dig (DBracketed x) = Nothing
+dig (DTermNotSupported x) = Nothing
+
+
+export
+apiInOut : DDecl -> Maybe (DTerm, DTerm)
+apiInOut (DClaim (MkDTy n doc (DRef x))) = Nothing
+apiInOut (DClaim (MkDTy n doc (DPi x argTy retTy))) = Nothing
+apiInOut (DClaim (MkDTy n doc (DLam x argTy scope))) = Nothing
+apiInOut (DClaim (MkDTy n doc ap@(DApp x y))) = dig ap
+apiInOut (DClaim (MkDTy n doc (DPrimVal x))) = Nothing
+apiInOut (DClaim (MkDTy n doc DImplicit)) = Nothing
+apiInOut (DClaim (MkDTy n doc DInfer)) = Nothing
+apiInOut (DClaim (MkDTy n doc (DHole x))) = Nothing
+apiInOut (DClaim (MkDTy n doc DType)) = Nothing
+apiInOut (DClaim (MkDTy n doc DUnit)) = Nothing
+apiInOut (DClaim (MkDTy n doc (DBracketed x))) = Nothing
+apiInOut (DClaim (MkDTy n doc (DTermNotSupported x))) = Nothing
+apiInOut (DDef xs) = Nothing
+apiInOut (DData doc x) = Nothing
+apiInOut (DRecord doc x params conName xs) = Nothing
+apiInOut (DMutual xs) = Nothing
+apiInOut (DDeclNotImplemented x) = Nothing
+
+mutual
+  -- Name of functions are not good.
+  export
+  searchLhs : Name -> DDecl -> Maybe DDecl
+  searchLhs name p@(DClaim (MkDTy n doc type)) = if name == n then Just p else Nothing
+  searchLhs name p@(DDef []) = Nothing
+  searchLhs name p@(DDef ((MkDPatClause lhs rhs) :: xs)) = const p <$> searchTerm name lhs
+  searchLhs name p@(DDef ((MkDClauseNotSupported x) :: xs)) = Nothing
+  searchLhs name p@(DData doc (MkDData tyname tycon datacons)) = Nothing
+  searchLhs name p@(DData doc (MkDataDeclNotSUpported x)) = Nothing
+  searchLhs name p@(DRecord doc x params conName xs) = Nothing
+  searchLhs name p@(DMutual xs) = Nothing -- It is supposed to be flatten before calling searchLhs.
+  searchLhs name p@(DDeclNotImplemented x) = Nothing
+
+  export
+  searchRhs : Name -> DDecl -> Maybe DDecl
+  searchRhs name p@(DClaim x) = const p <$> searchTypeDecl name x
+  searchRhs name p@(DDef xs) = Nothing
+  searchRhs name p@(DData doc x) = Nothing
+  searchRhs name p@(DRecord doc x params conName xs) = Nothing
+  searchRhs name p@(DMutual xs) = Nothing
+  searchRhs name p@(DDeclNotImplemented x) = Nothing
+
+  searchTypeDecl : Name -> DTypeDecl -> Maybe DTypeDecl
+  searchTypeDecl name p@(MkDTy n doc type) = const p <$> searchTerm name type
+
+  searchTerm : Name -> DTerm -> Maybe DTerm
+  searchTerm name p@(DRef x) = if name == x then Just p else Nothing
+  searchTerm name p@(DPi x argTy retTy) = Nothing
+  searchTerm name p@(DLam x argTy scope) = Nothing
+  searchTerm name p@(DApp x y) = searchTerm name x
+  searchTerm name p@(DPrimVal x) = Nothing -- 
+  searchTerm name p@DImplicit = Nothing
+  searchTerm name p@DInfer = Nothing
+  searchTerm name p@(DHole x) = Nothing
+  searchTerm name p@DType = Nothing
+  searchTerm name p@DUnit = Nothing
+  searchTerm name p@(DBracketed x) = Nothing
+  searchTerm name p@(DTermNotSupported x) = Nothing
+  
+
+export
+flatten : DDecl -> List DDecl
+flatten p@(DClaim x) = [p]
+flatten p@(DDef xs) = [p]
+flatten p@(DData doc x) = [p]
+flatten p@(DRecord doc x params conName xs) = [p]
+flatten p@(DMutual xs) = concatMap flatten xs
+flatten p@(DDeclNotImplemented x) = [p]
+
+isNamedTerm : DTerm -> Bool
+isNamedTerm (DRef x) = True
+isNamedTerm (DPi x argTy retTy) = isJust x
+isNamedTerm (DLam x argTy scope) = False
+isNamedTerm (DApp x y) = False
+isNamedTerm (DPrimVal x) = False
+isNamedTerm DImplicit = False
+isNamedTerm DInfer = False
+isNamedTerm (DHole x) = False
+isNamedTerm DType = False
+isNamedTerm DUnit = False
+isNamedTerm (DBracketed x) = False
+isNamedTerm (DTermNotSupported x) = False
+
+isNamedClause : DClause -> Bool
+isNamedClause (MkDPatClause lhs rhs) = isNamedTerm lhs
+isNamedClause (MkDClauseNotSupported x) = False
+
+
+export
+interface Nameable s where
+  namedItem : s -> List s
+
+export
+Nameable DDecl where
+  namedItem  p@(DClaim (MkDTy n doc type)) = [p]
+  namedItem  p@(DDef []) = []
+  namedItem  p@(DDef (x::xs)) with (isNamedClause x)
+    namedItem  p@(DDef (x::xs)) | True = [p]
+    namedItem  p@(DDef (x::xs)) | _ = [p]
+
+  namedItem  p@(DData doc x) = [p]
+  namedItem  p@(DRecord doc x params conName xs) = [p]
+  namedItem  p@(DMutual xs) = concatMap namedItem xs
+  namedItem  p@(DDeclNotImplemented x) = []
+
+
+
+
+
