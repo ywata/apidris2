@@ -1,5 +1,6 @@
 module Language.APIDef
 
+
 import Data.Maybe
 import Data.List
 import Data.Vect
@@ -111,6 +112,8 @@ mutual
     DInfer : DTerm
     DHole : String -> DTerm
     DType : DTerm
+--    DList : List DTerm -> DTerm
+--    DPair : DTerm -> DTerm -> DTerm
     DUnit : DTerm
     DBracketed :  DTerm -> DTerm
     DTermNotSupported : String -> DTerm
@@ -165,6 +168,8 @@ mutual
     show DInfer = "INFER"
     show (DHole x) = "?" ++ x
     show DType = "Type"
+--    show (DList xs) = "List ";
+--    show (DPair x y) = "(" ++ show x ++ "," ++ show y ++ ")"
     show DUnit = "()"
     show (DBracketed x) = show x
     show (DTermNotSupported msg) = "Not supported Term:" ++ msg
@@ -212,11 +217,42 @@ interface Searchable s where
 test :  {ty:Type} -> (a : ty) -> Maybe ty
 test a = Just a
 
+nonFunctionalType : DTerm -> Bool
+nonFunctionalType (DRef x) = ?nonFunctionalType_rhs_1
+nonFunctionalType (DPi x argTy retTy) = ?nonFunctionalType_rhs_2
+nonFunctionalType (DLam x argTy scope) = ?nonFunctionalType_rhs_3
+nonFunctionalType (DApp x y) = ?nonFunctionalType_rhs_4
+nonFunctionalType (DPrimVal x) = ?nonFunctionalType_rhs_5
+nonFunctionalType DImplicit = ?nonFunctionalType_rhs_6
+nonFunctionalType DInfer = ?nonFunctionalType_rhs_7
+nonFunctionalType (DHole x) = ?nonFunctionalType_rhs_8
+nonFunctionalType DType = ?nonFunctionalType_rhs_9
+--nonFunctionalType (DList _) = ?nonFunctionalType_rhs_13
+--nonFunctionalType (DPair _ _) = ?nonFunctionalType_rhs_14
+nonFunctionalType DUnit = ?nonFunctionalType_rhs_10
+nonFunctionalType (DBracketed x) = ?nonFunctionalType_rhs_11
+nonFunctionalType (DTermNotSupported x) = ?nonFunctionalType_rhs_12
+
+
+
 dig : DTerm -> Maybe (DTerm, DTerm)
 dig (DRef x) = Nothing
 dig (DPi x argTy retTy) = Nothing
 dig (DLam x argTy scope) = Nothing
-dig (DApp (DApp x y) z) = Just (y, z)
+
+-- Allowed API
+dig (DApp (DApp (DRef "API") y@(DPrimVal _)) a) = Just (y, a)
+dig (DApp (DApp (DRef "API") y@(DRef _)) a) = Just (y, a)
+dig (DApp (DApp (DRef "API") y@(DBracketed (DApp _ _))) a) = Just (y, a)
+dig (DApp (DApp (DRef "API") y@(DBracketed (DPrimVal _))) a) = Just(y, a)
+dig (DApp (DApp (DRef "API") y@DUnit) a) = Just(y, a)
+
+
+
+-- Not allowed
+dig (DApp (DApp x y) z) = Nothing
+
+--dig (DApp (DApp x y) z) = Just (y, z)
 dig (DApp _ z) = Nothing
 dig (DPrimVal x) = Nothing
 dig DImplicit = Nothing
@@ -224,6 +260,8 @@ dig DInfer = Nothing
 dig (DHole x) = Nothing
 dig DType = Nothing
 dig DUnit = Nothing
+--dig (DList _) = Nothing
+--dig (DPair _ _) = Nothing
 dig (DBracketed x) = Nothing
 dig (DTermNotSupported x) = Nothing
 
@@ -239,6 +277,8 @@ apiInOut (DClaim (MkDTy n doc DImplicit)) = Nothing
 apiInOut (DClaim (MkDTy n doc DInfer)) = Nothing
 apiInOut (DClaim (MkDTy n doc (DHole x))) = Nothing
 apiInOut (DClaim (MkDTy n doc DType)) = Nothing
+--apiInOut (DClaim (MkDTy n doc (DList _))) = Nothing
+--apiInOut (DClaim (MkDTy n doc (DPair _ _))) = Nothing
 apiInOut (DClaim (MkDTy n doc DUnit)) = Nothing
 apiInOut (DClaim (MkDTy n doc (DBracketed x))) = Nothing
 apiInOut (DClaim (MkDTy n doc (DTermNotSupported x))) = Nothing
@@ -284,6 +324,8 @@ mutual
   searchTerm name p@DInfer = Nothing
   searchTerm name p@(DHole x) = Nothing
   searchTerm name p@DType = Nothing
+--  searchTerm name p@(DList _) = Nothing
+--  searchTerm name p@(DPair _ _) = Nothing
   searchTerm name p@DUnit = Nothing
   searchTerm name p@(DBracketed x) = Nothing
   searchTerm name p@(DTermNotSupported x) = Nothing
@@ -298,6 +340,7 @@ flatten p@(DRecord doc x params conName xs) = [p]
 flatten p@(DMutual xs) = concatMap flatten xs
 flatten p@(DDeclNotImplemented x) = [p]
 
+{-
 isNamedTerm : DTerm -> Bool
 isNamedTerm (DRef x) = True
 isNamedTerm (DPi x argTy retTy) = isJust x
@@ -334,7 +377,7 @@ Nameable DDecl where
   namedItem  p@(DMutual xs) = concatMap namedItem xs
   namedItem  p@(DDeclNotImplemented x) = []
 
-
+-}
 
 
 

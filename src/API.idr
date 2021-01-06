@@ -27,9 +27,10 @@ mutual
     UserId : Type
     UserId = Id {ty = User} String
 
-userAPI : API UserId User
-
+userAPI : API (UserId -> UserId) User
 usersAPI : API () (List User)
+listUsersAPI : API (List UserId) (List User -> User)
+listUsersAPI : API (String) (List User)
 
 
 

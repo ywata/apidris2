@@ -167,7 +167,6 @@ isKnownType (DDecl, y) = True
 isKnownType (x, y) = False
 
 
-
 main : IO ()
 main = do 
           let fname = "src/API.idr"
@@ -179,7 +178,7 @@ main = do
           let apis = filter isJust . map ( searchRhs "API") . concatMap flatten $ moduleToDataDefs m
           let apiIFs = map (apiInOut <$>) apis
           putStrLn . sconcat "\n" $ map show apis
-          putStrLn . sconcat "\n" $ map show apiIFs
+          putStrLn . sconcat "\n" $ map (show . join) apiIFs
 --          putStrLn $ show (1,2)
 --          putStrLn . sconcat "\n" $ map (show ) $ moduleToDataDefs m
           pure ()
