@@ -217,37 +217,40 @@ interface Searchable s where
 test :  {ty:Type} -> (a : ty) -> Maybe ty
 test a = Just a
 
-nonFunctionalType : DTerm -> Bool
-nonFunctionalType (DRef x) = ?nonFunctionalType_rhs_1
-nonFunctionalType (DPi x argTy retTy) = ?nonFunctionalType_rhs_2
-nonFunctionalType (DLam x argTy scope) = ?nonFunctionalType_rhs_3
-nonFunctionalType (DApp x y) = ?nonFunctionalType_rhs_4
-nonFunctionalType (DPrimVal x) = ?nonFunctionalType_rhs_5
-nonFunctionalType DImplicit = ?nonFunctionalType_rhs_6
-nonFunctionalType DInfer = ?nonFunctionalType_rhs_7
-nonFunctionalType (DHole x) = ?nonFunctionalType_rhs_8
-nonFunctionalType DType = ?nonFunctionalType_rhs_9
---nonFunctionalType (DList _) = ?nonFunctionalType_rhs_13
---nonFunctionalType (DPair _ _) = ?nonFunctionalType_rhs_14
-nonFunctionalType DUnit = ?nonFunctionalType_rhs_10
-nonFunctionalType (DBracketed x) = ?nonFunctionalType_rhs_11
-nonFunctionalType (DTermNotSupported x) = ?nonFunctionalType_rhs_12
+isNonFunctionalType : DTerm -> Bool
+isNonFunctionalType p@(DRef x) = True
+isNonFunctionalType p@(DPrimVal x) = True
+isNonFunctionalType p@DUnit = True
+isNonFunctionalType p@(DBracketed (DApp _ _ )) = True
+isNonFunctionalType p@(DBracketed (DPrimVal _)) = True
+isNonFunctionalType _ = False
 
+isAPIType : DTerm -> Bool
+isAPIType (DApp (DApp (DRef "API") _) _) = True
+isAPIType _ = False
 
 
 dig : DTerm -> Maybe (DTerm, DTerm)
+dig (DApp (DApp (DRef "API") y) a) = if isNonFunctionalType y && isNonFunctionalType a then Just (y, a) else Nothing
+
+--   dig (DApp (DApp (DRef "API") y) a) | True | True = Just (y, a)
+--   dig (DApp (DApp (DRef "API") y) a) | False = Nothing
+--   dig (DApp (DApp (DRef "API") y) a) | _ = Nothing
+dig _ = Nothing
+{-
 dig (DRef x) = Nothing
 dig (DPi x argTy retTy) = Nothing
 dig (DLam x argTy scope) = Nothing
-
 -- Allowed API
-dig (DApp (DApp (DRef "API") y@(DPrimVal _)) a) = Just (y, a)
+
 dig (DApp (DApp (DRef "API") y@(DRef _)) a) = Just (y, a)
+dig (DApp (DApp (DRef "API") y@(DPrimVal _)) a) = Just (y, a)
+dig (DApp (DApp (DRef "API") y@DUnit) a) = Just(y, a)
 dig (DApp (DApp (DRef "API") y@(DBracketed (DApp _ _))) a) = Just (y, a)
 dig (DApp (DApp (DRef "API") y@(DBracketed (DPrimVal _))) a) = Just(y, a)
-dig (DApp (DApp (DRef "API") y@DUnit) a) = Just(y, a)
 
 
+dig (DApp (DApp (DRef "API") y) a@(DApp _ _)) = Just (y, a)
 
 -- Not allowed
 dig (DApp (DApp x y) z) = Nothing
@@ -264,6 +267,8 @@ dig DUnit = Nothing
 --dig (DPair _ _) = Nothing
 dig (DBracketed x) = Nothing
 dig (DTermNotSupported x) = Nothing
+-}
+
 
 
 export

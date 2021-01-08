@@ -29,8 +29,10 @@ mutual
 
 userAPI : API (UserId -> UserId) User
 usersAPI : API () (List User)
+
 listUsersAPI : API (List UserId) (List User -> User)
 listUsersAPI : API (String) (List User)
+primAPI : API String User
 
 
 
