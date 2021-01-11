@@ -21,17 +21,25 @@ mutual
   data Id : {ty :Type} -> Type -> Type where
     Id' : rep -> Id rep
   mutual
+    record Date  where
+      year : Int
+      month : Int
+      day : Int
+      
     data User : Type where
-      U1 : Id String -> Name -> User
+      U1 : Id String -> Name -> Date -> User
 
     UserId : Type
     UserId = Id {ty = User} String
+
 
 userAPI : API (UserId -> UserId) User
 usersAPI : API () (List User)
 
 listUsersAPI : API (List UserId) (List User -> User)
-listUsersAPI : API (String) (List User)
+listUsersAPI' : API (String) (List User)
+listUserbyNameAPI : API (Name) (List User)
+updateUserAPI : API (User) ()
 primAPI : API String User
 
 

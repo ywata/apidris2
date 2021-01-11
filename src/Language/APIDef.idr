@@ -223,52 +223,18 @@ isNonFunctionalType p@(DPrimVal x) = True
 isNonFunctionalType p@DUnit = True
 isNonFunctionalType p@(DBracketed (DApp _ _ )) = True
 isNonFunctionalType p@(DBracketed (DPrimVal _)) = True
+isNonFunctionalType p@(DBracketed (DRef _)) = True
 isNonFunctionalType _ = False
 
 isAPIType : DTerm -> Bool
 isAPIType (DApp (DApp (DRef "API") _) _) = True
 isAPIType _ = False
 
-
+||| digAPI digs structure of DTerm to see if the term matches to the valid API structure.
 dig : DTerm -> Maybe (DTerm, DTerm)
 dig (DApp (DApp (DRef "API") y) a) = if isNonFunctionalType y && isNonFunctionalType a then Just (y, a) else Nothing
 
---   dig (DApp (DApp (DRef "API") y) a) | True | True = Just (y, a)
---   dig (DApp (DApp (DRef "API") y) a) | False = Nothing
---   dig (DApp (DApp (DRef "API") y) a) | _ = Nothing
 dig _ = Nothing
-{-
-dig (DRef x) = Nothing
-dig (DPi x argTy retTy) = Nothing
-dig (DLam x argTy scope) = Nothing
--- Allowed API
-
-dig (DApp (DApp (DRef "API") y@(DRef _)) a) = Just (y, a)
-dig (DApp (DApp (DRef "API") y@(DPrimVal _)) a) = Just (y, a)
-dig (DApp (DApp (DRef "API") y@DUnit) a) = Just(y, a)
-dig (DApp (DApp (DRef "API") y@(DBracketed (DApp _ _))) a) = Just (y, a)
-dig (DApp (DApp (DRef "API") y@(DBracketed (DPrimVal _))) a) = Just(y, a)
-
-
-dig (DApp (DApp (DRef "API") y) a@(DApp _ _)) = Just (y, a)
-
--- Not allowed
-dig (DApp (DApp x y) z) = Nothing
-
---dig (DApp (DApp x y) z) = Just (y, z)
-dig (DApp _ z) = Nothing
-dig (DPrimVal x) = Nothing
-dig DImplicit = Nothing
-dig DInfer = Nothing
-dig (DHole x) = Nothing
-dig DType = Nothing
-dig DUnit = Nothing
---dig (DList _) = Nothing
---dig (DPair _ _) = Nothing
-dig (DBracketed x) = Nothing
-dig (DTermNotSupported x) = Nothing
--}
-
 
 
 export
