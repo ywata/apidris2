@@ -218,8 +218,8 @@ test :  {ty:Type} -> (a : ty) -> Maybe ty
 test a = Just a
 
 isNonFunctionalType : DTerm -> Bool
-isNonFunctionalType p@(DRef x) = True
-isNonFunctionalType p@(DPrimVal x) = True
+--isNonFunctionalType p@(DRef x) = True
+--isNonFunctionalType p@(DPrimVal x) = True
 isNonFunctionalType p@DUnit = True
 isNonFunctionalType p@(DBracketed (DApp _ _ )) = True
 isNonFunctionalType p@(DBracketed (DPrimVal _)) = True
