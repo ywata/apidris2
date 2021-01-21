@@ -221,9 +221,10 @@ isNonFunctionalType : DTerm -> Bool
 --isNonFunctionalType p@(DRef x) = True
 --isNonFunctionalType p@(DPrimVal x) = True
 isNonFunctionalType p@DUnit = True
+isNonFunctionalType p@(DBracketed (DRef _)) = True
 isNonFunctionalType p@(DBracketed (DApp _ _ )) = True
 isNonFunctionalType p@(DBracketed (DPrimVal _)) = True
-isNonFunctionalType p@(DBracketed (DRef _)) = True
+
 isNonFunctionalType _ = False
 
 isAPIType : DTerm -> Bool
@@ -235,6 +236,15 @@ dig : DTerm -> Maybe (DTerm, DTerm)
 dig (DApp (DApp (DRef "API") y) a) = if isNonFunctionalType y && isNonFunctionalType a then Just (y, a) else Nothing
 
 dig _ = Nothing
+
+
+export
+searchDecl : List DDecl -> DTerm -> Maybe (List DDecl)
+searchDecl xs DUnit = Nothing
+searchDecl xs (DBracketed (DRef x)) = ?searchClaim
+searchDecl xs (DBracketed (DApp x y)) = ?searchDecl_rhs_16
+searchDecl xs (DBracketed (DPrimVal x)) = ?searchDecl_rhs_17
+searchDecl xs _ = Nothing
 
 
 export

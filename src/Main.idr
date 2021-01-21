@@ -178,8 +178,8 @@ main = do
           let apis = filter isJust . map ( searchRhs "API") . concatMap flatten $ moduleToDataDefs m
           let apiIFs = map (apiInOut <$>) apis
           putStrLn . sconcat "\n" $ map show apis
-          let decls =  filter isJust $ map join apiIFs
-          putStrLn $ show decls
+          let apiDecls =  filter isJust $ map join apiIFs
+          putStrLn $ show apiDecls
 --          putStrLn . sconcat "\n" $ map (show ) $ moduleToDataDefs m
           pure ()
 
