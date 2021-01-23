@@ -96,6 +96,7 @@ mutual
     DClaim : DTypeDecl -> DDecl
     DDef : List DClause -> DDecl
     DData : (doc : String) -> DDataDecl -> DDecl
+    DRecord : (doc : String) -> Name -> (conName : Maybe Name) -> List DField -> DDecl
     DDeclNotImplemented: String -> DDecl
 
   ||| DField is a reduced version of PDField.
@@ -208,6 +209,7 @@ mutual
     show (DClaim x) = "DClaim:" ++ show x
     show (DDef xs) = "DDef:" ++ (sconcat " " $ map show xs)
     show (DData doc x) = "DData:" ++ show x
+    show (DRecord doc n con fs) = "DRecord:" ++ show n ++ " " ++ show con ++ " " ++  show fs
     show (DDeclNotImplemented msg) = "DDeclNotImplemented:" ++ "Not implemented:" ++ msg
 
 prettyMaybe : (a -> Doc ann) -> Maybe a -> Doc ann
@@ -236,6 +238,7 @@ mutual
     pretty (DClaim x) = p ("DClaim" <++> pretty x)
     pretty (DDef xs) = p ("DDef" <++> pretty xs)
     pretty (DData doc x) = p ("DData" <++> qq doc <++> pretty x)
+    pretty (DRecord doc n con fs) = p ("DRecord" <++> qq doc <++> q n <++> ms con <++> pretty fs)
     pretty (DDeclNotImplemented x) = p ("DDeclNotImplemented" <++> qq x)
   export
   Pretty DDataDecl where

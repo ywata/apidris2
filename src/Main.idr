@@ -154,17 +154,11 @@ mutual
   convertDecl p@(PClaim fc x y xs z) = DClaim (convertTypeDecl z)
   convertDecl p@(PDef fc xs) = DDef (map convertClause xs)
   convertDecl p@(PData fc doc x y) = DData doc (convertDataDecl y)
-  convertDecl p@(PRecord fc doc v n ps con fs)  = DDeclNotImplemented "desugarDecl removes PRecord"
+  convertDecl p@(PRecord fc doc v n ps con fs)  = DRecord doc (convertName n) (convertName <$> con) (map convertField fs)
   convertDecl p@(PMutual fc xs) = DDeclNotImplemented "desugarDecl removes DMutual"
   convertDecl p = DDeclNotImplemented ""
 
 desugarDecl : PDecl -> List PDecl
-desugarDecl d@(PRecord fc doc vis n ps _ _)
-      = [PData fc doc vis (MkPLater fc n (mkRecType ps))]
-    where
-      mkRecType : List (CN.Name, RigCount, PiInfo PTerm, PTerm) -> PTerm
-      mkRecType [] = PType fc
-      mkRecType ((n, c, p, t) :: ts) = PPi fc c p (Just n) t (mkRecType ts)
 desugarDecl (PMutual fc ds) = concatMap desugarDecl ds
 desugarDecl p = [p]
 

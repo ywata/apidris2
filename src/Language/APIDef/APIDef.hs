@@ -32,7 +32,7 @@ data DDecl where
   DClaim :: DTypeDecl -> DDecl
   DDef :: [DClause] -> DDecl
   DData :: String -> DDataDecl -> DDecl
-  DRecord :: String -> Name ->  [Name] -> Maybe Name -> [DField] -> DDecl
+  DRecord :: String -> Name ->  Maybe Name -> [DField] -> DDecl -- should we keep params?
   DMutual :: [DDecl] -> DDecl
   DDeclNotImplemented:: String -> DDecl
   deriving(Show, Read)
