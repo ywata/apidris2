@@ -1,5 +1,8 @@
 module API
 
+f : a -> b -> c -> d -> d
+f a b c d = d
+
 data API : Type -> Type -> Type where
   Api :  {input : Type} -> {output : Type} -> API input output
 

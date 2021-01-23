@@ -112,11 +112,13 @@ mutual
     DPi : Maybe APIDef.Name -> (argTy : DTerm) -> (retTy : DTerm) -> DTerm
     DLam : DTerm -> (argTy : DTerm) -> (scope: DTerm) -> DTerm
     DApp : DTerm -> DTerm -> DTerm
+    DNamedApp : DTerm -> Name -> DTerm -> DTerm    
     DPrimVal : Const -> DTerm
     DImplicit : DTerm    
     DInfer : DTerm
     DHole : String -> DTerm
     DType : DTerm
+
 --    DList : List DTerm -> DTerm
 --    DPair : DTerm -> DTerm -> DTerm
     DUnit : DTerm
@@ -139,9 +141,7 @@ mutual
   public export
   data DDataDecl : Type where
     MkDData : (tyname : APIDef.Name) -> (tycon : DTerm) -> (datacons : List DTypeDecl) -> DDataDecl
-    MkDataDeclNotSUpported : String -> DDataDecl
-
-
+    MkDLater : (tyname : APIDef.Name) -> (tycon : DTerm) -> DDataDecl
 
 
 mutual
@@ -152,6 +152,7 @@ mutual
     show (DPi (Just x) argTy retTy) = "Π" ++ x ++ ":" ++ show argTy ++ "->" ++ show retTy
     show (DLam x argTy scope) = parens("λ" ++ show x ++ "." ++ show argTy ++ "-->" ++ show scope)
     show (DApp x y) = show x ++ parens( show y)
+    show (DNamedApp x name y) = show x ++ show name ++ show y
     show (DPrimVal (CI x)) = show x
     show (DPrimVal (CBI x)) = show x
     show (DPrimVal (CB8 x)) = show x
@@ -200,7 +201,7 @@ mutual
   export
   Show DDataDecl where
     show (MkDData tyname tycon datacons) = tyname ++ ":" ++ show tycon ++ " " ++ (sconcat " " $ map show datacons)
-    show (MkDataDeclNotSUpported x) = "Not supported"
+    show (MkDLater tyname tycon) = tyname ++ ":" ++ show tycon
 
   public export
   Show DDecl where
@@ -239,7 +240,7 @@ mutual
   export
   Pretty DDataDecl where
     pretty (MkDData tyname tycon datacons) = p ("MkDData" <++> q tyname <++> pretty tycon <++> pretty datacons)
-    pretty (MkDataDeclNotSUpported x) = p (pretty "MkDataDeclNotSUpported" <++> qq x)
+    pretty (MkDLater tyname tycon) = p ("MkDData" <++> q tyname <++> pretty tycon)
   export
   Pretty DTypeDecl where
     pretty (MkDTy n doc type) = p ("MkDTy" <++> q n <++> qq doc <++> pretty type)
@@ -257,6 +258,7 @@ mutual
       = p ("DPi" <++> p (ms x) <++> pretty argTy <++> pretty retTy)    
     pretty (DLam x argTy scope) = p ("DLam" <++> pretty x <++> pretty argTy <++> pretty scope)
     pretty (DApp x y) = p ("DApp" <++> pretty x <++> pretty y)
+    pretty (DNamedApp x n y) = p ("DNamedApp" <++> pretty x <++> q n <++> pretty y)    
     pretty (DPrimVal x) = p ("DPrimVal" <++> pretty x)
     pretty DImplicit = pretty "DImplicit"
     pretty DInfer = pretty "DInfoer"
@@ -315,6 +317,7 @@ apiInOut (DClaim (MkDTy n doc (DRef x))) = Nothing
 apiInOut (DClaim (MkDTy n doc (DPi x argTy retTy))) = Nothing
 apiInOut (DClaim (MkDTy n doc (DLam x argTy scope))) = Nothing
 apiInOut (DClaim (MkDTy n doc ap@(DApp x y))) = dig ap
+apiInOut (DClaim (MkDTy n doc ap@(DNamedApp x name y))) = dig ap
 apiInOut (DClaim (MkDTy n doc (DPrimVal x))) = Nothing
 apiInOut (DClaim (MkDTy n doc DImplicit)) = Nothing
 apiInOut (DClaim (MkDTy n doc DInfer)) = Nothing
@@ -338,7 +341,7 @@ mutual
   searchLhs name p@(DDef ((MkDPatClause lhs rhs) :: xs)) = const p <$> searchTerm name lhs
   searchLhs name p@(DDef ((MkDClauseNotSupported x) :: xs)) = Nothing
   searchLhs name p@(DData doc (MkDData tyname tycon datacons)) = Nothing
-  searchLhs name p@(DData doc (MkDataDeclNotSUpported x)) = Nothing
+  searchLhs name p@(DData doc (MkDLater tyname tycon)) = Nothing
   searchLhs name p@(DDeclNotImplemented x) = Nothing
 
   export
@@ -356,6 +359,7 @@ mutual
   searchTerm name p@(DPi x argTy retTy) = Nothing
   searchTerm name p@(DLam x argTy scope) = Nothing
   searchTerm name p@(DApp x y) = searchTerm name x
+  searchTerm name p@(DNamedApp x n y) = searchTerm name x
   searchTerm name p@(DPrimVal x) = Nothing -- 
   searchTerm name p@DImplicit = Nothing
   searchTerm name p@DInfer = Nothing

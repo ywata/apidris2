@@ -90,7 +90,7 @@ mutual
   convertTerm p@(PUpdate fc xs) = DTermNotSupported ("PUpdate")
   convertTerm p@(PApp fc x y) = DApp (convertTerm x) (convertTerm y)
   convertTerm p@(PWithApp fc x y) = DTermNotSupported ("PWithApp")
-  convertTerm p@(PNamedApp fc x y z) = DTermNotSupported ("NamedApp")
+  convertTerm p@(PNamedApp fc x y z) = DNamedApp (convertTerm x) (convertName y) (convertTerm z)
   convertTerm p@(PAutoApp fc x y) = DTermNotSupported ("PAutoApp")
   convertTerm p@(PDelayed fc x y) = DTermNotSupported ("PDelayed")
   convertTerm p@(PDelay fc x) = DTermNotSupported ("PDelay")
@@ -147,7 +147,7 @@ mutual
   convertDataDecl : IS.PDataDecl -> DDataDecl
   convertDataDecl (MkPData fc tyname tycon opts datacons)
     = MkDData (convertName tyname) (convertTerm tycon) (map convertTypeDecl datacons)
-  convertDataDecl (MkPLater fc tyname tycon) = MkDataDeclNotSUpported "MkPLater"
+  convertDataDecl (MkPLater fc tyname tycon) = MkDLater (convertName tyname) (convertTerm tycon)
 
   export
   convertDecl : PDecl -> DDecl
