@@ -240,7 +240,7 @@ mutual
   export
   Pretty DDataDecl where
     pretty (MkDData tyname tycon datacons) = p ("MkDData" <++> q tyname <++> pretty tycon <++> pretty datacons)
-    pretty (MkDLater tyname tycon) = p ("MkDData" <++> q tyname <++> pretty tycon)
+    pretty (MkDLater tyname tycon) = p ("MkDLater" <++> q tyname <++> pretty tycon)
   export
   Pretty DTypeDecl where
     pretty (MkDTy n doc type) = p ("MkDTy" <++> q n <++> qq doc <++> pretty type)

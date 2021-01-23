@@ -28,10 +28,12 @@ library
       Lib
   other-modules:
       Paths_apidris2
+  exposed-modules : Language.APIDef, Language.APIDef.APIDef, API
   hs-source-dirs:
       src
   build-depends:
-      base >=4.7 && <5
+                base >=4.7 && <5
+                , pretty >= 1.1.3.0
   default-language: Haskell2010
 
 executable apidris2-exe
@@ -42,8 +44,9 @@ executable apidris2-exe
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      apidris2
-    , base >=4.7 && <5
+                    apidris2
+                , base >=4.7 && <5
+                , pretty >= 1.1.3.0
   default-language: Haskell2010
 
 test-suite apidris2-test
@@ -55,6 +58,7 @@ test-suite apidris2-test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      apidris2
-    , base >=4.7 && <5
+                    apidris2
+                , base >=4.7 && <5
+                , pretty >= 1.1.3.0
   default-language: Haskell2010

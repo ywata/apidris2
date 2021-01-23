@@ -23,18 +23,22 @@ Name = String
 mutual
   data Id : {ty :Type} -> Type -> Type where
     Id' : rep -> Id rep
-  mutual
-    record Date  where
-      year : Int
-      month : Int
-      day : Int
+
+  record Date  where
+    year : Int
+    month : Int
+    day : Int
       
-    data User : Type where
-      U1 : Id String -> Name -> Date -> User
+  data User : Type where
+    U1 : Id String -> Name -> Date -> User
 
-    UserId : Type
-    UserId = Id {ty = User} String
+  UserId : Type
+  UserId = Id {ty = User} String
 
+
+record DateTime where
+  date : Date
+  time : Int
 
 userAPI : API (UserId -> UserId) User
 usersAPI : API () (List User)

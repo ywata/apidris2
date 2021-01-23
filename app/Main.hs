@@ -1,7 +1,10 @@
-
 module Main where
 
-import Lib
+import Language.APIDef
+import API ( apiDef )
 
 main :: IO ()
-main = someFunc
+main = do
+  print $ apiDef
+
+
