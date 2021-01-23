@@ -243,7 +243,7 @@ mutual
     pretty (DDef xs) = p ("DDef" <++> pretty xs)
     pretty (DData doc x) = p ("DData" <++> qq doc <++> pretty x)
     pretty (DRecord doc x params conName xs) 
-      = p("DRecord" <++> qq doc <++> pretty params <++> ms conName <++> pretty xs)
+      = p("DRecord" <++> qq doc <++> q x <++> pretty params <++> ms conName <++> pretty xs)
     pretty (DMutual xs) = p ("DMutual" <++> pretty xs)
     pretty (DDeclNotImplemented x) = p ("DDeclNotImplemented" <++> qq x)
   export
@@ -255,7 +255,7 @@ mutual
     pretty (MkDTy n doc type) = p ("MkDTy" <++> q n <++> qq doc <++> pretty type)
   export
   Pretty DClause where
-    pretty (MkDPatClause lhs rhs) = p ("MkPatClause" <++> pretty lhs <++> pretty rhs)
+    pretty (MkDPatClause lhs rhs) = p ("MkDPatClause" <++> pretty lhs <++> pretty rhs)
     pretty (MkDClauseNotSupported x) = p ("MkDClauseNotSupported" <++> qq x)
   export
   Pretty DField where
@@ -274,7 +274,7 @@ mutual
     pretty DType = pretty "DType"
     pretty DUnit = pretty "DUnit"
     pretty (DBracketed x) = p ("DBracketed" <++> pretty x)
-    pretty (DTermNotSupported x) = p ("DTermNotSupported" <++> pretty x)
+    pretty (DTermNotSupported x) = p ("DTermNotSupported" <++> qq x)
     
 type1 : {ty : Type} -> (a : ty) -> Type
 type1 a = ty

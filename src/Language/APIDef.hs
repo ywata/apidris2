@@ -38,7 +38,7 @@ data DDecl where
   deriving(Show, Read)
 
 data DField where
-  MkDField :: String -> [Name] -> DTerm -> DField
+  MkDField :: String -> Name -> DTerm -> DField
   deriving(Show, Read)
 
 data DTerm where
