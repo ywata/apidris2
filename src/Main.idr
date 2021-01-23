@@ -7,6 +7,7 @@ import Idris.Syntax
 import Idris.Parser
 
 import System.File
+import System
 
 import Language.APIDef as APIDef
 
@@ -14,7 +15,10 @@ import Idris.Syntax as IS
 import Core.TT as CT
 import Core.Name as CN
 
+import Text.PrettyPrint.Prettyprinter
+import Text.PrettyPrint.Prettyprinter.Util
 
+import Text.PrettyPrint.Prettyprinter.Render.String
 
 showConst : Constant -> String
 showConst (I x) = "I "
@@ -167,20 +171,31 @@ isKnownType (DDecl, y) = True
 isKnownType (x, y) = False
 
 
+hsDef : String -> Doc ann -> Doc ann
+hsDef name d = pretty "module API where" <+> hardline <+> 
+               pretty "import Language.APIDef" <+> hardline <+>
+               pretty name <++> pretty ":: [DDecl]" <+> hardline <+> pretty name <++> equals <++> d
+
+
 main : IO ()
 main = do 
+          [name] <- getArgs
+             | [] => putStrLn "file name needed"
+             | _ :: _ => putStrLn "too many arguments"
+          
           let fname = "src/API.idr"
+              hsname = "src/API.hs"
           Right contents <- readFile fname
             | Left _ => putStr "File error"
           let Right m = runParser Nothing contents rule
               | Left e => putStrLn ""
-
-          let apis = filter isJust . map ( searchRhs "API") . concatMap flatten $ moduleToDataDefs m
-          let apiIFs = map (apiInOut <$>) apis
-          putStrLn . sconcat "\n" $ map show apis
-          let apiDecls =  filter isJust $ map join apiIFs
-          putStrLn $ show apiDecls
---          putStrLn . sconcat "\n" $ map (show ) $ moduleToDataDefs m
+          let decls = moduleToDataDefs m
+              str = renderString . layoutPretty defaultLayoutOptions . hsDef "apiDef" $ pretty {ann = ()} decls
+              
+          Right f <- openFile hsname WriteTruncate
+            | Left _ => pure ()
+          fPutStrLn f str
+          closeFile f
           pure ()
 
 

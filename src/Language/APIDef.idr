@@ -1,9 +1,14 @@
 module Language.APIDef
 
-
 import Data.Maybe
 import Data.List
+import Data.Strings
 import Data.Vect
+
+
+import Text.PrettyPrint.Prettyprinter
+import Text.PrettyPrint.Prettyprinter.Util
+
 
 {-
 As source AST of Idris2 is too big to describe API.
@@ -43,33 +48,35 @@ data Const
     | CDoubleType
     | CWorldType
 
+pshow : Show a => a -> Doc ann
+pshow = pretty . show
 
-export
-isType : Const -> Bool
-isType (CI x) = False
-isType (CBI x) = False
-isType (CB8 x) = False
-isType (CB16 x) = False
-isType (CB32 x) = False
-isType (CB64 x) = False
-isType (CStr x) = False
-isType (CCh x) = False
-isType (CDb x) = False
-isType CWorldVal = True
-isType CIntType = True
-isType CIntegerType = True
-isType CBits8Type = True
-isType CBits16Type = True
-isType CBits32Type = True
-isType CBits64Type = True
-isType CStringType = True
-isType CCharType = True
-isType CDoubleType = True
-isType CWorldType = True
+Pretty Const where
+  pretty (CI x) = "CT" <++> pshow x
+  pretty (CBI x) = "CBI" <++> pshow x
+  pretty (CB8 x) = "CB8" <++> pshow x
+  pretty (CB16 x) = "CB16" <++> pshow x
+  pretty (CB32 x) = "CB32" <++> pshow x
+  pretty (CB64 x) = "CB64" <++> pshow x
+  pretty (CStr x) = "CStr" <++> pshow x
+  pretty (CCh x) = "CCh" <++> pshow x
+  pretty (CDb x) = "CDb" <++> pshow x
+  pretty CWorldVal = "WorldVal"
+  pretty CIntType = "CIntType"
+  pretty CIntegerType = "CIntegerType"
+  pretty CBits8Type = "CBitsType"
+  pretty CBits16Type = "CBits16Type"
+  pretty CBits32Type ="CBits32Type"
+  pretty CBits64Type = "CBits64Type"
+  pretty CStringType = "CStringType"
+  pretty CCharType = "CCharType"
+  pretty CDoubleType = "CDoubleType"
+  pretty CWorldType = "CWorldType"
 
 
-quote: String -> String
-quote s = "("++ s ++ ")"
+
+parens: String -> String
+parens s = "("++ s ++ ")"
 
 export
 sconcat : String -> List String -> String
@@ -137,13 +144,16 @@ mutual
     MkDataDeclNotSUpported : String -> DDataDecl
 
 
+
+
+mutual
   export
   Show DTerm where
     show (DRef x) = x
     show (DPi Nothing argTy retTy) = show argTy ++ "->" ++ show retTy
     show (DPi (Just x) argTy retTy) = "Π" ++ x ++ ":" ++ show argTy ++ "->" ++ show retTy
-    show (DLam x argTy scope) = quote("λ" ++ show x ++ "." ++ show argTy ++ "-->" ++ show scope)
-    show (DApp x y) = show x ++ quote( show y)
+    show (DLam x argTy scope) = parens("λ" ++ show x ++ "." ++ show argTy ++ "-->" ++ show scope)
+    show (DApp x y) = show x ++ parens( show y)
     show (DPrimVal (CI x)) = show x
     show (DPrimVal (CBI x)) = show x
     show (DPrimVal (CB8 x)) = show x
@@ -173,6 +183,7 @@ mutual
     show DUnit = "()"
     show (DBracketed x) = show x
     show (DTermNotSupported msg) = "Not supported Term:" ++ msg
+
 
   ||| Data field of record.
   export
@@ -204,6 +215,67 @@ mutual
     show (DMutual xs) = sconcat "\n" $ map show xs
     show (DDeclNotImplemented msg) = "DDeclNotImplemented:" ++ "Not implemented:" ++ msg
 
+
+prettyMaybe : (a -> Doc ann) -> Maybe a -> Doc ann
+prettyMaybe _ Nothing = pretty "Nothing"
+prettyMaybe f (Just a) = pretty "Just" <++> f a
+
+p : Doc ann -> Doc ann
+p = parenthesise True
+q : String -> Doc ann
+q = dquotes . pretty
+
+escape : Char -> String -> String
+escape _ a = a
+
+qq : String -> Doc ann 
+qq = dquotes . pretty . escape '\''
+
+ms : Maybe String -> Doc ann
+ms = prettyMaybe q
+
+
+
+mutual
+  public export
+  Pretty DDecl where
+    pretty (DClaim x) = p ("DClaim" <++> pretty x)
+    pretty (DDef xs) = p ("DDef" <++> pretty xs)
+    pretty (DData doc x) = p ("DData" <++> qq doc <++> pretty x)
+    pretty (DRecord doc x params conName xs) 
+      = p("DRecord" <++> qq doc <++> pretty params <++> ms conName <++> pretty xs)
+    pretty (DMutual xs) = p ("DMutual" <++> pretty xs)
+    pretty (DDeclNotImplemented x) = p ("DDeclNotImplemented" <++> qq x)
+  export
+  Pretty DDataDecl where
+    pretty (MkDData tyname tycon datacons) = p ("MkDData" <++> q tyname <++> pretty tycon <++> pretty datacons)
+    pretty (MkDataDeclNotSUpported x) = p (pretty "MkDataDeclNotSUpported" <++> qq x)
+  export
+  Pretty DTypeDecl where
+    pretty (MkDTy n doc type) = p ("MkDTy" <++> q n <++> qq doc <++> pretty type)
+  export
+  Pretty DClause where
+    pretty (MkDPatClause lhs rhs) = p ("MkPatClause" <++> pretty lhs <++> pretty rhs)
+    pretty (MkDClauseNotSupported x) = p ("MkDClauseNotSupported" <++> qq x)
+  export
+  Pretty DField where
+    pretty (MkDField doc x ty) = p ("MkDField" <++> qq doc <++> q x <++> pretty ty)
+  export
+  Pretty DTerm where
+    pretty (DRef x) = p ("DRef" <++> q x)
+    pretty (DPi x argTy retTy) 
+      = p ("DPi" <++> p (ms x) <++> pretty argTy <++> pretty retTy)    
+    pretty (DLam x argTy scope) = p ("DLam" <++> pretty x <++> pretty argTy <++> pretty scope)
+    pretty (DApp x y) = p ("DApp" <++> pretty x <++> pretty y)
+    pretty (DPrimVal x) = p ("DPrimVal" <++> pretty x)
+    pretty DImplicit = pretty "DImplicit"
+    pretty DInfer = pretty "DInfoer"
+    pretty (DHole x) = p ("DHole" <++> q x)
+    pretty DType = pretty "DType"
+    pretty DUnit = pretty "DUnit"
+    pretty (DBracketed x) = p ("DBracketed" <++> pretty x)
+    pretty (DTermNotSupported x) = p ("DTermNotSupported" <++> pretty x)
+    
 type1 : {ty : Type} -> (a : ty) -> Type
 type1 a = ty
 

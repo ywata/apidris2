@@ -10,7 +10,7 @@ mutual
   data IsA1 : A -> Type where
     IA1 : forall s. IsA1 (A1 s)
 
-
+{-
 def : IsA1 (A1 s)
 def = IA1 
 
@@ -104,4 +104,5 @@ userAPI = api UserId User
 
 apiList : List API
 apiList = [userAPI]
+-}
 -}
