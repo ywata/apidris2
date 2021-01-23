@@ -155,18 +155,18 @@ mutual
   convertDecl p@(PDef fc xs) = DDef (map convertClause xs)
   convertDecl p@(PData fc doc x y) = DData doc (convertDataDecl y)
   convertDecl p@(PRecord fc doc v n ps con fs)  = DDeclNotImplemented "desugarDecl removes PRecord"
-  convertDecl p@(PMutual fc xs) = DMutual (map convertDecl xs)
+  convertDecl p@(PMutual fc xs) = DDeclNotImplemented "desugarDecl removes DMutual"
   convertDecl p = DDeclNotImplemented ""
 
-desugarDecl : PDecl -> PDecl
+desugarDecl : PDecl -> List PDecl
 desugarDecl d@(PRecord fc doc vis n ps _ _)
-      = PData fc doc vis (MkPLater fc n (mkRecType ps))
+      = [PData fc doc vis (MkPLater fc n (mkRecType ps))]
     where
       mkRecType : List (CN.Name, RigCount, PiInfo PTerm, PTerm) -> PTerm
       mkRecType [] = PType fc
       mkRecType ((n, c, p, t) :: ts) = PPi fc c p (Just n) t (mkRecType ts)
-desugarDecl (PMutual fc ds) = PMutual fc (map desugarDecl ds)
-desugarDecl p = p
+desugarDecl (PMutual fc ds) = concatMap desugarDecl ds
+desugarDecl p = [p]
 
 {-
   desugarDecl ps (PMutual fc ds)
@@ -174,14 +174,14 @@ desugarDecl p = p
            mds' <- traverse (desugarDecl ps) mds
            pure (concat mds')
 -}
-desugar : PDecl -> PDecl
+desugar : PDecl -> List PDecl
 desugar = desugarDecl
 
 rule : Grammar Token False Module
 rule = prog "()"
 
 moduleToDataDefs : Module -> List APIDef.DDecl
-moduleToDataDefs (MkModule headerloc moduleNS imports documentation decls) = map convertDecl . map desugar $ decls
+moduleToDataDefs (MkModule headerloc moduleNS imports documentation decls) = map convertDecl . concatMap desugar $ decls
 
 
 isKnownType : {ty : Type} -> {v : ty} -> (Type, ty) -> Bool

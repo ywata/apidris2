@@ -96,7 +96,6 @@ mutual
     DClaim : DTypeDecl -> DDecl
     DDef : List DClause -> DDecl
     DData : (doc : String) -> DDataDecl -> DDecl
-    DMutual : List DDecl -> DDecl
     DDeclNotImplemented: String -> DDecl
 
   ||| DField is a reduced version of PDField.
@@ -208,9 +207,7 @@ mutual
     show (DClaim x) = "DClaim:" ++ show x
     show (DDef xs) = "DDef:" ++ (sconcat " " $ map show xs)
     show (DData doc x) = "DData:" ++ show x
-    show (DMutual xs) = sconcat "\n" $ map show xs
     show (DDeclNotImplemented msg) = "DDeclNotImplemented:" ++ "Not implemented:" ++ msg
-
 
 prettyMaybe : (a -> Doc ann) -> Maybe a -> Doc ann
 prettyMaybe _ Nothing = pretty "Nothing"
@@ -238,7 +235,6 @@ mutual
     pretty (DClaim x) = p ("DClaim" <++> pretty x)
     pretty (DDef xs) = p ("DDef" <++> pretty xs)
     pretty (DData doc x) = p ("DData" <++> qq doc <++> pretty x)
-    pretty (DMutual xs) = p ("DMutual" <++> pretty xs)
     pretty (DDeclNotImplemented x) = p ("DDeclNotImplemented" <++> qq x)
   export
   Pretty DDataDecl where
@@ -331,7 +327,6 @@ apiInOut (DClaim (MkDTy n doc (DBracketed x))) = Nothing
 apiInOut (DClaim (MkDTy n doc (DTermNotSupported x))) = Nothing
 apiInOut (DDef xs) = Nothing
 apiInOut (DData doc x) = Nothing
-apiInOut (DMutual xs) = Nothing
 apiInOut (DDeclNotImplemented x) = Nothing
 
 mutual
@@ -344,7 +339,6 @@ mutual
   searchLhs name p@(DDef ((MkDClauseNotSupported x) :: xs)) = Nothing
   searchLhs name p@(DData doc (MkDData tyname tycon datacons)) = Nothing
   searchLhs name p@(DData doc (MkDataDeclNotSUpported x)) = Nothing
-  searchLhs name p@(DMutual xs) = Nothing -- It is supposed to be flatten before calling searchLhs.
   searchLhs name p@(DDeclNotImplemented x) = Nothing
 
   export
@@ -352,7 +346,6 @@ mutual
   searchRhs name p@(DClaim x) = const p <$> searchTypeDecl name x
   searchRhs name p@(DDef xs) = Nothing
   searchRhs name p@(DData doc x) = Nothing
-  searchRhs name p@(DMutual xs) = Nothing
   searchRhs name p@(DDeclNotImplemented x) = Nothing
 
   searchTypeDecl : Name -> DTypeDecl -> Maybe DTypeDecl
@@ -380,6 +373,5 @@ flatten : DDecl -> List DDecl
 flatten p@(DClaim x) = [p]
 flatten p@(DDef xs) = [p]
 flatten p@(DData doc x) = [p]
-flatten p@(DMutual xs) = concatMap flatten xs
 flatten p@(DDeclNotImplemented x) = [p]
 
