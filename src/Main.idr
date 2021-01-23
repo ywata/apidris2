@@ -158,12 +158,30 @@ mutual
   convertDecl p@(PMutual fc xs) = DMutual (map convertDecl xs)
   convertDecl p = DDeclNotImplemented ""
 
+desugarDecl : PDecl -> PDecl
+desugarDecl d@(PRecord fc doc vis n ps _ _)
+      = PData fc doc vis (MkPLater fc n (mkRecType ps))
+    where
+      mkRecType : List (CN.Name, RigCount, PiInfo PTerm, PTerm) -> PTerm
+      mkRecType [] = PType fc
+      mkRecType ((n, c, p, t) :: ts) = PPi fc c p (Just n) t (mkRecType ts)
+desugarDecl (PMutual fc ds) = PMutual fc (map desugarDecl ds)
+desugarDecl p = p
+
+{-
+  desugarDecl ps (PMutual fc ds)
+      = do let mds = mapMaybe (getDecl AsType) ds ++ mapMaybe (getDecl AsDef) ds
+           mds' <- traverse (desugarDecl ps) mds
+           pure (concat mds')
+-}
+desugar : PDecl -> PDecl
+desugar = desugarDecl
 
 rule : Grammar Token False Module
 rule = prog "()"
 
 moduleToDataDefs : Module -> List APIDef.DDecl
-moduleToDataDefs (MkModule headerloc moduleNS imports documentation decls) = map convertDecl decls
+moduleToDataDefs (MkModule headerloc moduleNS imports documentation decls) = map convertDecl . map desugar $ decls
 
 
 isKnownType : {ty : Type} -> {v : ty} -> (Type, ty) -> Bool
@@ -197,6 +215,7 @@ main = do
           fPutStrLn f str
           closeFile f
           pure ()
+
 
 
 
