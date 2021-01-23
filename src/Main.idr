@@ -154,7 +154,7 @@ mutual
   convertDecl p@(PClaim fc x y xs z) = DClaim (convertTypeDecl z)
   convertDecl p@(PDef fc xs) = DDef (map convertClause xs)
   convertDecl p@(PData fc doc x y) = DData doc (convertDataDecl y)
-  convertDecl p@(PRecord fc doc v n ps con fs)  = DRecord doc (convertName n) [] (convertName <$> con) (map convertField fs)
+  convertDecl p@(PRecord fc doc v n ps con fs)  = DDeclNotImplemented "desugarDecl removes PRecord"
   convertDecl p@(PMutual fc xs) = DMutual (map convertDecl xs)
   convertDecl p = DDeclNotImplemented ""
 

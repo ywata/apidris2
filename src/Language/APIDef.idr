@@ -96,7 +96,6 @@ mutual
     DClaim : DTypeDecl -> DDecl
     DDef : List DClause -> DDecl
     DData : (doc : String) -> DDataDecl -> DDecl
-    DRecord : (doc : String) -> APIDef.Name -> (params : List APIDef.Name) -> (conName : Maybe APIDef.Name) -> List DField -> DDecl
     DMutual : List DDecl -> DDecl
     DDeclNotImplemented: String -> DDecl
 
@@ -209,9 +208,6 @@ mutual
     show (DClaim x) = "DClaim:" ++ show x
     show (DDef xs) = "DDef:" ++ (sconcat " " $ map show xs)
     show (DData doc x) = "DData:" ++ show x
-    show (DRecord doc x params conName xs) 
-      = "DRecord:"  ++ x ++ show conName ++ (sconcat " " $ map show params) ++ (sconcat " " $ map show xs)
-
     show (DMutual xs) = sconcat "\n" $ map show xs
     show (DDeclNotImplemented msg) = "DDeclNotImplemented:" ++ "Not implemented:" ++ msg
 
@@ -242,8 +238,6 @@ mutual
     pretty (DClaim x) = p ("DClaim" <++> pretty x)
     pretty (DDef xs) = p ("DDef" <++> pretty xs)
     pretty (DData doc x) = p ("DData" <++> qq doc <++> pretty x)
-    pretty (DRecord doc x params conName xs) 
-      = p("DRecord" <++> qq doc <++> q x <++> pretty params <++> ms conName <++> pretty xs)
     pretty (DMutual xs) = p ("DMutual" <++> pretty xs)
     pretty (DDeclNotImplemented x) = p ("DDeclNotImplemented" <++> qq x)
   export
@@ -337,7 +331,6 @@ apiInOut (DClaim (MkDTy n doc (DBracketed x))) = Nothing
 apiInOut (DClaim (MkDTy n doc (DTermNotSupported x))) = Nothing
 apiInOut (DDef xs) = Nothing
 apiInOut (DData doc x) = Nothing
-apiInOut (DRecord doc x params conName xs) = Nothing
 apiInOut (DMutual xs) = Nothing
 apiInOut (DDeclNotImplemented x) = Nothing
 
@@ -351,7 +344,6 @@ mutual
   searchLhs name p@(DDef ((MkDClauseNotSupported x) :: xs)) = Nothing
   searchLhs name p@(DData doc (MkDData tyname tycon datacons)) = Nothing
   searchLhs name p@(DData doc (MkDataDeclNotSUpported x)) = Nothing
-  searchLhs name p@(DRecord doc x params conName xs) = Nothing
   searchLhs name p@(DMutual xs) = Nothing -- It is supposed to be flatten before calling searchLhs.
   searchLhs name p@(DDeclNotImplemented x) = Nothing
 
@@ -360,7 +352,6 @@ mutual
   searchRhs name p@(DClaim x) = const p <$> searchTypeDecl name x
   searchRhs name p@(DDef xs) = Nothing
   searchRhs name p@(DData doc x) = Nothing
-  searchRhs name p@(DRecord doc x params conName xs) = Nothing
   searchRhs name p@(DMutual xs) = Nothing
   searchRhs name p@(DDeclNotImplemented x) = Nothing
 
@@ -389,7 +380,6 @@ flatten : DDecl -> List DDecl
 flatten p@(DClaim x) = [p]
 flatten p@(DDef xs) = [p]
 flatten p@(DData doc x) = [p]
-flatten p@(DRecord doc x params conName xs) = [p]
 flatten p@(DMutual xs) = concatMap flatten xs
 flatten p@(DDeclNotImplemented x) = [p]
 
