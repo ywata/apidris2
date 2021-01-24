@@ -6,6 +6,7 @@ module Language.APIDef.Utils (apiInOut
                              , isDRecord
                              , isDNotImplemented
                              , termName
+                             , namedType
                              ) where
 
 import Language.APIDef.APIDef 
@@ -29,7 +30,7 @@ apiInOut name (DApp (DApp (DRef n) input) output) = if name == n && isNonFunctio
                                                    else Nothing
 apiInOut _ _ = Nothing
 
-data TypeName = Prim Const | DT DTerm | DN DTerm | None
+data TypeName = Prim Const | DT DTerm | DD DDecl | None
   deriving(Show, Read)
 
 termName :: DTerm -> TypeName
@@ -49,6 +50,11 @@ termName DUnit = DT DUnit
 termName (DBracketed p) = DT p
 termName p = None
 
+
+namedType :: Name -> DDecl -> TypeName
+namedType n p@(DData _ (MkDData name _ _)) | n == name = DD p
+namedType n p@(DRecord _ name _ _) | n == name = DD p
+namedType _ _ = None
 
 
 isDClaim, isDDef, isDData, isDRecord, isDNotImplemented :: DDecl -> Bool
