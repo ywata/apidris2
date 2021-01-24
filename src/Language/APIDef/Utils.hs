@@ -4,7 +4,9 @@ module Language.APIDef.Utils (apiInOut
                              , isDDef
                              , isDData
                              , isDRecord
-                             , isDNotImplemented ) where
+                             , isDNotImplemented
+                             , termName
+                             ) where
 
 import Language.APIDef.APIDef 
 
@@ -25,8 +27,29 @@ apiInOut :: Name -> DTerm -> Maybe (DTerm, DTerm)
 apiInOut name (DApp (DApp (DRef n) input) output) = if name == n && isNonFunctionalType input && isNonFunctionalType output then
                                                      Just (input, output)
                                                    else Nothing
-
 apiInOut _ _ = Nothing
+
+data TypeName = Prim Const | DT DTerm | DN DTerm | None
+  deriving(Show, Read)
+
+termName :: DTerm -> TypeName
+termName p@(DRef x) = DT p
+termName (DPi mbn l _) = termName l
+termName (DLam _ _ _) = None
+termName (DApp l _) = termName l
+termName (DNamedApp l _ _) = termName l
+termName (DPrimVal p) = Prim p
+termName DImplicit = None
+termName DInfer = None
+termName p@(DHole _) = DT p
+termName DType = DT DType
+termName p@(DList _) = DT p
+termName p@(DPair _ _) = DT p
+termName DUnit = DT DUnit
+termName (DBracketed p) = DT p
+termName p = None
+
+
 
 isDClaim, isDDef, isDData, isDRecord, isDNotImplemented :: DDecl -> Bool
 isDClaim (DClaim _) = True
