@@ -142,7 +142,8 @@ mutual
   public export
   data DDataDecl : Type where
     MkDData : (tyname : APIDef.Name) -> (tycon : DTerm) -> (datacons : List DTypeDecl) -> DDataDecl
-    MkDLater : (tyname : APIDef.Name) -> (tycon : DTerm) -> DDataDecl
+--    MkDLater : (tyname : APIDef.Name) -> (tycon : DTerm) -> DDataDecl
+    MkDDataNotImplemented : String -> DDataDecl
 
 
 mutual
@@ -202,7 +203,8 @@ mutual
   export
   Show DDataDecl where
     show (MkDData tyname tycon datacons) = tyname ++ ":" ++ show tycon ++ " " ++ (sconcat " " $ map show datacons)
-    show (MkDLater tyname tycon) = tyname ++ ":" ++ show tycon
+--    show (MkDLater tyname tycon) = tyname ++ ":" ++ show tycon
+    show (MkDDataNotImplemented x) = "MkDDataNotImplemented:" ++ x
 
   public export
   Show DDecl where
@@ -243,7 +245,8 @@ mutual
   export
   Pretty DDataDecl where
     pretty (MkDData tyname tycon datacons) = p ("MkDData" <++> q tyname <++> pretty tycon <++> pretty datacons)
-    pretty (MkDLater tyname tycon) = p ("MkDLater" <++> q tyname <++> pretty tycon)
+--    pretty (MkDLater tyname tycon) = p ("MkDLater" <++> q tyname <++> pretty tycon)
+    pretty (MkDDataNotImplemented x) = p ("MkDDataNotImplemented" <++> qq x)
   export
   Pretty DTypeDecl where
     pretty (MkDTy n doc type) = p ("MkDTy" <++> q n <++> qq doc <++> pretty type)

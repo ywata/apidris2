@@ -7,6 +7,7 @@ module Language.APIDef.Utils (apiInOut
                              , isDNotImplemented
                              , termName
                              , namedType
+                             , TypeName(..)
                              ) where
 
 import Language.APIDef.APIDef 

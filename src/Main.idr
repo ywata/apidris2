@@ -147,7 +147,8 @@ mutual
   convertDataDecl : IS.PDataDecl -> DDataDecl
   convertDataDecl (MkPData fc tyname tycon opts datacons)
     = MkDData (convertName tyname) (convertTerm tycon) (map convertTypeDecl datacons)
-  convertDataDecl (MkPLater fc tyname tycon) = MkDLater (convertName tyname) (convertTerm tycon)
+--  convertDataDecl (MkPLater fc tyname tycon) = MkDLater (convertName tyname) (convertTerm tycon)
+  convertDataDecl p@(MkPLater fc tyname tycon) = MkDDataNotImplemented ("MkPLater:" ++ show tyname)
 
   export
   convertDecl : PDecl -> DDecl

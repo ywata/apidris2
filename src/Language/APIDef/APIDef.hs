@@ -70,7 +70,7 @@ data DTypeDecl where
 
 data DDataDecl where
   MkDData :: Name -> DTerm -> [DTypeDecl] -> DDataDecl
-  MkDLater :: Name -> DTerm -> DDataDecl
+--  MkDLater :: Name -> DTerm -> DDataDecl
   MkDataDeclNotImplemented :: String -> DDataDecl
   deriving(Show, Read)
 

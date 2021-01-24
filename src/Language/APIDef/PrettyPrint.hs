@@ -3,7 +3,7 @@
 module Language.APIDef.PrettyPrint where
 
 import Language.APIDef.APIDef
-import Text.PrettyPrint.HughesPJ
+import Text.PrettyPrint
 
 prettyMaybe :: Pretty a => (a -> Doc) -> Maybe a -> Doc
 prettyMaybe _ Nothing = pretty "Nothing"
@@ -54,6 +54,3 @@ instance Pretty Const where
      pretty (CDoubleType)   = pretty "Double"
      pretty (CWorldType)    = pretty "#World"
 
-
-instance Pretty DDecl where
-  pretty = undefined
