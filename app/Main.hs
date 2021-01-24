@@ -1,11 +1,13 @@
 module Main where
 
 import Language.APIDef
+import Language.APIDef.Utils
 
 import API ( apiDef )
 
 main :: IO ()
 main = do
-  print $ apiDef
-
+  putStrLn "DClaim"
+  print $ map isAPITypeDecl $ filter isDClaim apiDef
+  pure ()
 

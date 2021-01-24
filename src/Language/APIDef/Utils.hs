@@ -1,4 +1,10 @@
-module Language.APIDef.Utils (apiInOut) where
+module Language.APIDef.Utils (apiInOut
+                             , isAPITypeDecl
+                             , isDClaim
+                             , isDDef
+                             , isDData
+                             , isDRecord
+                             , isDNotImplemented ) where
 
 import Language.APIDef.APIDef 
 
@@ -10,9 +16,9 @@ isNonFunctionalType p@(DBracketed (DPrimVal _)) = True
 isNonFunctionalType _ = False
 
 -- | type is named API in out type
-isAPIType :: DTerm -> Bool
-isAPIType (DApp (DApp (DRef "API") _) _) = True
-isAPIType _ = False
+isAPITypeDecl :: DDecl -> Maybe (Name, DTerm, DTerm)
+isAPITypeDecl (DClaim (MkDTy name doc dt@(DApp (DApp (DRef "API") i) o))) = Just (name, i, o)
+isAPITypeDecl _ = Nothing
 
 -- | apiInOut digs structure of DTerm to see if the term matches to the valid API structure.
 apiInOut :: Name -> DTerm -> Maybe (DTerm, DTerm)
@@ -21,6 +27,18 @@ apiInOut name (DApp (DApp (DRef n) input) output) = if name == n && isNonFunctio
                                                    else Nothing
 
 apiInOut _ _ = Nothing
+
+isDClaim, isDDef, isDData, isDRecord, isDNotImplemented :: DDecl -> Bool
+isDClaim (DClaim _) = True
+isDClaim _ = False
+isDDef (DDef _) = True
+isDDef _ = False
+isDData (DData _ _) = True
+isDData _ = False
+isDRecord (DRecord _ _ _ _) = True
+isDRecord _ = False
+isDNotImplemented (DDeclNotImplemented _) = True
+isDNotImplementedf _ = False
 
 
 
