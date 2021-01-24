@@ -22,13 +22,15 @@ apiInOut name (DApp (DApp (DRef n) input) output) = if name == n && isNonFunctio
 
 apiInOut _ _ = Nothing
 
+
+
 {-
 -- Name of functions are not good.
 searchLhs :: Name -> DDecl -> Maybe DDecl
 searchLhs name p@(DClaim (MkDTy n doc type)) = if name == n then Just p else Nothing
 searchLhs name p@(DDef []) = Nothing
 searchLhs name p@(DDef ((MkDPatClause lhs rhs) :: xs)) = const p <$> searchTerm name lhs
-searchLhs name p@(DDef ((MkDClauseNotSupported x) :: xs)) = Nothing
+searchLhs name p@(DDef ((MkDClauseNotImplemented x) :: xs)) = Nothing
 searchLhs name p@(DData doc (MkDData tyname tycon datacons)) = Nothing
 searchLhs name p@(DData doc (MkDataDeclNotSUpported x)) = Nothing
 searchLhs name p@(DDeclNotImplemented x) = Nothing
@@ -57,7 +59,7 @@ searchTerm name p@DType = Nothing
 --  searchTerm name p@(DPair _ _) = Nothing
 searchTerm name p@DUnit = Nothing
 searchTerm name p@(DBracketed x) = Nothing
-searchTerm name p@(DTermNotSupported x) = Nothing
+searchTerm name p@(DTermNotImplemented x) = Nothing
 
 
 -}

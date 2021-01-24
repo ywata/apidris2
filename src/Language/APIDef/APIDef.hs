@@ -56,12 +56,12 @@ data DTerm where
   DPair :: DTerm -> DTerm -> DTerm
   DUnit :: DTerm
   DBracketed ::  DTerm -> DTerm
-  DTermNotSupported :: String -> DTerm
+  DTermNotImplemented :: String -> DTerm
   deriving(Show, Read)
 
 data DClause where
   MkDPatClause :: DTerm -> DTerm -> DClause
-  MkDClauseNotSupported :: String -> DClause
+  MkDClauseNotImplemented :: String -> DClause
   deriving(Show, Read)
 
 data DTypeDecl where
@@ -71,6 +71,6 @@ data DTypeDecl where
 data DDataDecl where
   MkDData :: Name -> DTerm -> [DTypeDecl] -> DDataDecl
   MkDLater :: Name -> DTerm -> DDataDecl
---  MkDataDeclNotSUpported :: String -> DDataDecl
+  MkDataDeclNotImplemented :: String -> DDataDecl
   deriving(Show, Read)
 

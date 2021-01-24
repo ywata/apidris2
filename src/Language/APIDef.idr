@@ -14,7 +14,7 @@ import Text.PrettyPrint.Prettyprinter.Util
 As source AST of Idris2 is too big to describe API.
 To minimize efforts, reduced version of AST is defined.
 Because of its reduction, if we just remove unnecessary definition, some functions becomes partial,
-we choose to define NotIMplemented definition for such reduced definitions.
+we choose to define NotImplemented definition for such reduced definitions.
 
 The idea behind this is to use restricted Idris2's source language as a API definition language.
 That provides automatic type check for API definition language and an ability to use Idris2's dependent type
@@ -124,13 +124,13 @@ mutual
 --    DPair : DTerm -> DTerm -> DTerm
     DUnit : DTerm
     DBracketed :  DTerm -> DTerm
-    DTermNotSupported : String -> DTerm
+    DTermNotImplemented : String -> DTerm
     
   ||| DClause is a reduced version of PClause.
   public export  
   data DClause : Type where
     MkDPatClause : (lhs : DTerm) -> (rhs : DTerm) -> DClause
-    MkDClauseNotSupported : String -> DClause
+    MkDClauseNotImplemented : String -> DClause
 
 
   ||| Reduced vaersion of DTypeDecl
@@ -182,7 +182,7 @@ mutual
 --    show (DPair x y) = "(" ++ show x ++ "," ++ show y ++ ")"
     show DUnit = "()"
     show (DBracketed x) = show x
-    show (DTermNotSupported msg) = "Not supported Term:" ++ msg
+    show (DTermNotImplemented msg) = "Not supported Term:" ++ msg
 
 
   ||| Data field of record.
@@ -193,7 +193,7 @@ mutual
   export 
   Show DClause where
     show (MkDPatClause lhs rhs) = show lhs ++ ":=" ++ show rhs
-    show (MkDClauseNotSupported x) = "Not supported"
+    show (MkDClauseNotImplemented x) = "Not supported"
 
   export
   Show DTypeDecl where
@@ -250,7 +250,7 @@ mutual
   export
   Pretty DClause where
     pretty (MkDPatClause lhs rhs) = p ("MkDPatClause" <++> pretty lhs <++> pretty rhs)
-    pretty (MkDClauseNotSupported x) = p ("MkDClauseNotSupported" <++> qq x)
+    pretty (MkDClauseNotImplemented x) = p ("MkDClauseNotImplemented" <++> qq x)
   export
   Pretty DField where
     pretty (MkDField doc x ty) = p ("MkDField" <++> qq doc <++> q x <++> pretty ty)
@@ -269,4 +269,4 @@ mutual
     pretty DType = pretty "DType"
     pretty DUnit = pretty "DUnit"
     pretty (DBracketed x) = p ("DBracketed" <++> pretty x)
-    pretty (DTermNotSupported x) = p ("DTermNotSupported" <++> qq x)
+    pretty (DTermNotImplemented x) = p ("DTermNotImplemented" <++> qq x)
