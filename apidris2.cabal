@@ -28,7 +28,12 @@ library
       Lib
   other-modules:
       Paths_apidris2
-  exposed-modules : Language.APIDef, Language.APIDef.APIDef, API
+  exposed-modules : Language.APIDef
+    , Language.APIDef.APIDef
+    , Language.APIDef.PrettyPrint
+    , Language.APIDef.Utils
+    , API
+    
   hs-source-dirs:
       src
   build-depends:
