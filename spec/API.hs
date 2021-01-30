@@ -26,4 +26,7 @@ apiDef = [ (DClaim (MkDTy "f" "" (DPi (Nothing) (DRef "a") (DPi (Nothing) (DRef 
          , (DClaim (MkDTy "listUsersAPI'" "" (DApp (DApp (DRef "API") (DBracketed (DPrimVal CStringType))) (DBracketed (DApp (DRef "List") (DRef "User"))))))
          , (DClaim (MkDTy "listUserbyNameAPI" "" (DApp (DApp (DRef "API") (DBracketed (DRef "Name"))) (DBracketed (DApp (DRef "List") (DRef "User"))))))
          , (DClaim (MkDTy "updateUserAPI" "" (DApp (DApp (DRef "API") (DBracketed (DRef "User"))) DUnit)))
-         , (DClaim (MkDTy "primAPI" "" (DApp (DApp (DRef "API") (DPrimVal CStringType)) (DRef "User")))) ]
+         , (DClaim (MkDTy "primAPI" "" (DApp (DApp (DRef "API") (DPrimVal CStringType)) (DRef "User"))))
+         , (DNamespace (DMkNS [ Test
+                              , API ]) [ (DClaim (MkDTy "userAPI" "" (DApp (DApp (DRef "API") (DBracketed (DPi (Nothing) (DRef "UserId") (DRef "UserId")))) (DRef "User"))))
+                                       , (DClaim (MkDTy "usersAPI" "" (DApp (DApp (DRef "API") DUnit) (DBracketed (DApp (DRef "List") (DRef "User")))))) ]) ]

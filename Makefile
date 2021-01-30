@@ -4,7 +4,9 @@ all: idr hs try
 idr :
 	idris2 --build apidris2.ipkg
 
-hs :
+conv:
+	./build/exec/apidris2 spec/API.idr
+hs : 
 	cabal build
 
 run : hs

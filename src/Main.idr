@@ -1,6 +1,8 @@
 module Main
 
-import Data.List
+import Data.List as L
+import Data.Strings as S
+import Data.String.Extra as S
 import Data.Maybe
 
 import Idris.Syntax
@@ -14,6 +16,7 @@ import Language.APIDef as APIDef
 import Idris.Syntax as IS
 import Core.TT as CT
 import Core.Name as CN
+import Core.Name.Namespace as NS
 
 import Text.PrettyPrint.Prettyprinter
 import Text.PrettyPrint.Prettyprinter.Util
@@ -157,6 +160,7 @@ mutual
   convertDecl p@(PData fc doc x y) = DData doc (convertDataDecl y)
   convertDecl p@(PRecord fc doc v n ps con fs)  = DRecord doc (convertName n) (convertName <$> con) (map convertField fs)
   convertDecl p@(PMutual fc xs) = DDeclNotImplemented "desugarDecl removes DMutual"
+  convertDecl p@(PNamespace fc ns pd) = DNamespace (DMkNS $ NS.unsafeUnfoldNamespace ns) (map convertDecl pd)
   convertDecl p = DDeclNotImplemented ""
 
 desugarDecl : PDecl -> List PDecl
@@ -190,25 +194,74 @@ hsDef name d = pretty "module API where" <+> hardline <+>
                pretty name <++> pretty ":: [DDecl]" <+> hardline <+> pretty name <++> equals <++> d
 
 
+data Path : Type where 
+  Abs : List String -> Path
+  Rel : List String -> Path
+  NoPath : Path
+
+Show Path where
+  show (Abs xs) = "Abs:" ++ show xs
+  show (Rel xs) = "Rel:" ++ show xs
+  show NoPath = "NoPath"
+
+splitBy : (Char -> Bool) -> String -> List String -> List String
+splitBy _ "" ls = ls
+splitBy p s ls = if length (snd pair) == 0 then (fst pair) :: ls else splitBy p (S.drop 1 (snd pair)) ((fst pair)::ls)
+  where
+    pair : (String, String)
+    pair = break p s
+
+path : String -> Path
+path "" = NoPath
+path s = if isPrefixOf "/" s then Abs (L.drop 1 ls) else Rel ls
+  where
+    pref : Bool
+    pref = isPrefixOf "/" s
+    ls : List String
+    ls = reverse $ splitBy (== '/') s []
+
+chgs : String -> List String -> List String
+chgs t [] = []
+chgs t [x] = [fst pair ++ "." ++ t]
+  where
+    pair : (String, String)
+    pair = break (== '.') x
+chgs t (x :: xs) = x :: chgs t xs
+  
+
+changeSuffix : String -> Path -> Path
+changeSuffix to (Abs xs) = Abs (chgs to xs)
+changeSuffix to (Rel xs) = Rel (chgs to xs)
+changeSuffix _ NoPath = NoPath
+
+mkPath : Path -> Maybe String
+mkPath (Abs xs) = Just $ "/" ++ concat (intersperse "/" xs)
+mkPath (Rel xs) = Just $ concat (intersperse "/" xs)
+mkPath NoPath = Nothing
+
+
 main : IO ()
 main = do 
-          [name] <- getArgs
-             | [] => putStrLn "file name needed"
-             | _ :: _ => putStrLn "too many arguments"
-          
-          let fname = "src/API.idr"
-              hsname = "src/API.hs"
+          [bin, api_file]  <- getArgs
+            | _ => putStrLn "too many arguments"
+
+          let fname = api_file
+          (Just hsname) <- pure (mkPath $ changeSuffix "hs" $ path api_file)
+            | _ => putStrLn "invalid path string"
+--          putStrLn $ show $ (fname, hsname)
           Right contents <- readFile fname
-            | Left _ => putStr "File error"
-          let Right m = runParser Nothing contents rule
-              | Left e => putStrLn ""
-          let decls = moduleToDataDefs m
-              str = renderString . layoutPretty defaultLayoutOptions . hsDef "apiDef" $ pretty {ann = ()} decls
-              
+            | Left _ => putStr $ "Read file error:" ++ fname
+          let Right (MkModule headerloc moduleNS imports documentation decls)  = runParser Nothing contents rule
+              | Left e => putStrLn "API spec format error"
+          let 
+              str = renderString . layoutPretty defaultLayoutOptions . hsDef "apiDef" $ pretty {ann = ()} 
+                $  map convertDecl . concatMap desugar $ decls
+
           Right f <- openFile hsname WriteTruncate
             | Left _ => pure ()
           fPutStrLn f str
           closeFile f
+
           pure ()
 
 

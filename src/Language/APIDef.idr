@@ -83,6 +83,14 @@ sconcat : String -> List String -> String
 sconcat sep xs = concat $ intersperse sep xs
 
 -- Restricted version of Source syntax
+public export
+data Namespace : Type where
+  DMkNS : List String -> Namespace
+
+public export
+data ModuleIdent : Type where
+  DMkMI : List String -> ModuleIdent
+
 
 mutual
   public export
@@ -97,6 +105,7 @@ mutual
     DDef : List DClause -> DDecl
     DData : (doc : String) -> DDataDecl -> DDecl
     DRecord : (doc : String) -> Name -> (conName : Maybe Name) -> List DField -> DDecl
+    DNamespace : Namespace -> (List DDecl) -> DDecl
     DDeclNotImplemented: String -> DDecl
 
   ||| DField is a reduced version of PDField.
@@ -144,6 +153,12 @@ mutual
     MkDData : (tyname : APIDef.Name) -> (tycon : DTerm) -> (datacons : List DTypeDecl) -> DDataDecl
 --    MkDLater : (tyname : APIDef.Name) -> (tycon : DTerm) -> DDataDecl
     MkDDataNotImplemented : String -> DDataDecl
+
+Show Namespace where
+  show (DMkNS xs) = ("DMkNS:" ++ show xs)
+
+Show ModuleIdent where
+  show (DMkMI xs) = ("DMkMI:" ++ show xs)
 
 
 mutual
@@ -212,6 +227,7 @@ mutual
     show (DDef xs) = "DDef:" ++ (sconcat " " $ map show xs)
     show (DData doc x) = "DData:" ++ show x
     show (DRecord doc n con fs) = "DRecord:" ++ show n ++ " " ++ show con ++ " " ++  show fs
+    show (DNamespace n ds) = "DNamespace:" ++ show n ++ " " ++ show ds
     show (DDeclNotImplemented msg) = "DDeclNotImplemented:" ++ "Not implemented:" ++ msg
 
 prettyMaybe : (a -> Doc ann) -> Maybe a -> Doc ann
@@ -233,6 +249,11 @@ ms : Maybe String -> Doc ann
 ms = prettyMaybe q
 
 
+Pretty Namespace where
+  pretty (DMkNS xs) = p("DMkNS" <++> pretty xs)
+Pretty ModuleIdent where
+  pretty (DMkMI xs) = p("DMkNS" <++> pretty xs)
+
 
 mutual
   public export
@@ -241,6 +262,8 @@ mutual
     pretty (DDef xs) = p ("DDef" <++> pretty xs)
     pretty (DData doc x) = p ("DData" <++> qq doc <++> pretty x)
     pretty (DRecord doc n con fs) = p ("DRecord" <++> qq doc <++> q n <++> ms con <++> pretty fs)
+    pretty (DNamespace ns ds) = p ("DNamespace" <++> pretty ns <++> pretty ds)
+
     pretty (DDeclNotImplemented x) = p ("DDeclNotImplemented" <++> qq x)
   export
   Pretty DDataDecl where
