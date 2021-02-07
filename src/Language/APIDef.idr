@@ -132,9 +132,10 @@ mutual
     DHole : String -> DTerm
     DType : DTerm
 
---    DList : List DTerm -> DTerm
---    DPair : DTerm -> DTerm -> DTerm
+    DList : List DTerm -> DTerm
+    DPair : DTerm -> DTerm -> DTerm
     DUnit : DTerm
+    
     DBracketed :  DTerm -> DTerm
     DTermNotImplemented : String -> DTerm
     
@@ -197,8 +198,8 @@ mutual
     show DInfer = "INFER"
     show (DHole x) = "?" ++ x
     show DType = "Type"
---    show (DList xs) = "List ";
---    show (DPair x y) = "(" ++ show x ++ "," ++ show y ++ ")"
+    show (DList xs) = "List " 
+    show (DPair x y) = "(" ++ show x ++ "," ++ show y ++ ")"
     show DUnit = "()"
     show (DBracketed x) = show x
     show (DTermNotImplemented msg) = "Not supported Term:" ++ msg
@@ -309,6 +310,8 @@ mutual
     pretty DInfer = pretty "DInfoer"
     pretty (DHole x) = p ("DHole" <++> q x)
     pretty DType = pretty "DType"
+    pretty (DPair x y) = p ("DPair" <++> p(pretty x) <++> p(pretty y))
+    pretty (DList xs) = p ("DList" <++> encloseSep lbracket rbracket comma (map pretty xs))
     pretty DUnit = pretty "DUnit"
     pretty (DBracketed x) = p ("DBracketed" <++> pretty x)
     pretty (DTermNotImplemented x) = p ("DTermNotImplemented" <++> qq x)

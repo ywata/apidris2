@@ -120,8 +120,8 @@ mutual
   convertTerm p@(PDoBlock fc x xs) = DTermNotImplemented ("PDoBlock")
   convertTerm p@(PBang fc x) = DTermNotImplemented ("PBang")
   convertTerm p@(PIdiom fc x) = DTermNotImplemented ("PIdiom")
-  convertTerm p@(PList fc xs) = DTermNotImplemented ("PList")
-  convertTerm p@(PPair fc x y) = DTermNotImplemented ("PPair")
+  convertTerm p@(PList fc xs) = DList (map convertTerm xs)
+  convertTerm p@(PPair fc x y) = DPair (convertTerm x) (convertTerm y)
   convertTerm p@(PDPair fc x y z) = DTermNotImplemented ("PDPair")
   convertTerm p@(PUnit fc) = DUnit
   convertTerm p@(PIfThenElse fc x y z) = DTermNotImplemented ("PIfThenElse")
