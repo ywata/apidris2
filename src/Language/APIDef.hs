@@ -8,6 +8,8 @@ module Language.APIDef (
   DClause(..),
   DTypeDecl(..),
   DDataDecl(..),
+  Namespace(..),
+  ModuleIdent(..),
   apiInOut)
 where
 

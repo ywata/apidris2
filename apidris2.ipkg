@@ -1,6 +1,6 @@
 package apidris2
 
-depends = base, idris2, contrib
+depends = idris2, base, contrib
 
 sourcedir = "src"
 

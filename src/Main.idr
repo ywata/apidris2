@@ -1,6 +1,6 @@
 module Main
 
-import Data.List as L
+import Data.List 
 import Data.Strings as S
 import Data.String.Extra as S
 import Data.Maybe
@@ -153,6 +153,11 @@ mutual
 --  convertDataDecl (MkPLater fc tyname tycon) = MkDLater (convertName tyname) (convertTerm tycon)
   convertDataDecl p@(MkPLater fc tyname tycon) = MkDDataNotImplemented ("MkPLater:" ++ show tyname)
 
+  convertNamespapce : NS.Namespace -> APIDef.Namespace
+  convertNamespapce ns = DMkNS (unsafeUnfoldNamespace ns)
+  convertModuleIdent : NS.ModuleIdent -> APIDef.ModuleIdent
+  convertModuleIdent mi = DMkMI (unsafeUnfoldModuleIdent mi)
+  
   export
   convertDecl : PDecl -> DDecl
   convertDecl p@(PClaim fc x y xs z) = DClaim (convertTypeDecl z)
@@ -160,7 +165,7 @@ mutual
   convertDecl p@(PData fc doc x y) = DData doc (convertDataDecl y)
   convertDecl p@(PRecord fc doc v n ps con fs)  = DRecord doc (convertName n) (convertName <$> con) (map convertField fs)
   convertDecl p@(PMutual fc xs) = DDeclNotImplemented "desugarDecl removes DMutual"
-  convertDecl p@(PNamespace fc ns pd) = DNamespace (DMkNS $ NS.unsafeUnfoldNamespace ns) (map convertDecl pd)
+  convertDecl p@(PNamespace fc ns pd) = DNamespace (convertNamespapce ns) (map convertDecl pd)
   convertDecl p = DDeclNotImplemented ""
 
 desugarDecl : PDecl -> List PDecl
@@ -179,7 +184,7 @@ desugar = desugarDecl
 rule : Grammar Token False Module
 rule = prog "()"
 
-moduleToDataDefs : Module -> List APIDef.DDecl
+moduleToDataDefs : Module ->  List APIDef.DDecl
 moduleToDataDefs (MkModule headerloc moduleNS imports documentation decls) = map convertDecl . concatMap desugar $ decls
 
 
@@ -191,7 +196,7 @@ isKnownType (x, y) = False
 hsDef : String -> Doc ann -> Doc ann
 hsDef name d = pretty "module API where" <+> hardline <+> 
                pretty "import Language.APIDef" <+> hardline <+>
-               pretty name <++> pretty ":: [DDecl]" <+> hardline <+> pretty name <++> equals <++> d
+               pretty name <++> pretty ":: [(ModuleIdent, [DDecl])]" <+> hardline <+> pretty name <++> equals <++> d
 
 
 data Path : Type where 
@@ -213,7 +218,7 @@ splitBy p s ls = if length (snd pair) == 0 then (fst pair) :: ls else splitBy p 
 
 path : String -> Path
 path "" = NoPath
-path s = if isPrefixOf "/" s then Abs (L.drop 1 ls) else Rel ls
+path s = if isPrefixOf "/" s then Abs (drop 1 ls) else Rel ls
   where
     pref : Bool
     pref = isPrefixOf "/" s
@@ -229,6 +234,7 @@ chgs t [x] = [fst pair ++ "." ++ t]
 chgs t (x :: xs) = x :: chgs t xs
   
 
+
 changeSuffix : String -> Path -> Path
 changeSuffix to (Abs xs) = Abs (chgs to xs)
 changeSuffix to (Rel xs) = Rel (chgs to xs)
@@ -239,6 +245,59 @@ mkPath (Abs xs) = Just $ "/" ++ concat (intersperse "/" xs)
 mkPath (Rel xs) = Just $ concat (intersperse "/" xs)
 mkPath NoPath = Nothing
 
+(</>) : Path -> Path -> Path
+(</>) p q@(Abs xs) = q
+(</>) (Abs ys) (Rel xs) = Abs (ys ++ xs)
+(</>) (Rel ys) (Rel xs) = Rel (ys ++ xs)
+(</>) NoPath r@(Rel xs) = r
+(</>) p NoPath = p
+
+
+readModule : Path -> Path -> IO (Either String Module)
+readModule pref p@(Rel _) = do
+  let (Just p) = mkPath $ pref </> changeSuffix "idr" p
+     | _ => pure $ Left "path"
+  Right contents <- do
+                    putStrLn p
+                    readFile p
+    | Left _ => pure $ Left "file read error"
+  let Right m@(MkModule headerloc moduleNS imports documentation decls)  = runParser Nothing contents rule
+    | Left e => pure $ Left "API spec format error"
+  pure $ Right m
+
+readModule _ _ = pure $ Left "Abs path not supported"
+
+readModules : Path -> List Path -> IO (List(NS.ModuleIdent, List PDecl))
+readModules _ [] = pure []
+readModules pref (f :: xs) = do
+  Right p@(MkModule headerloc ns imports documentation decls) <- readModule pref f
+    | Left _ => readModules pref xs
+  ps <- readModules pref xs
+  pure $ (ns, decls) :: ps
+    
+writeAST : String -> List DDecl -> IO ()
+writeAST file decls = 
+  do
+    let 
+--      val : (List String, List DDecl)
+--      val = (unsafeUnfoldModuleIdent moduleNS, moduleToDataDefs m)
+      str : String
+      str = renderString . layoutPretty defaultLayoutOptions . hsDef "apiDef" $ pretty {ann = ()} decls
+    Right f <- do
+               putStrLn file
+               openFile file WriteTruncate
+      | Left _ => pure ()
+    fPutStrLn f str
+    closeFile f
+    
+
+convPDecl : (NS.ModuleIdent, List PDecl) -> (APIDef.ModuleIdent, List DDecl)
+convPDecl (mi, decls) = (convertModuleIdent mi, map convertDecl . concatMap desugar $ decls)
+--convPDecl : (NS.ModuleIdent, List PDecl) -> (List DDecl)
+--convPDecl (mi, decls) = (map convertDecl . concatMap desugar $ decls)
+--convPDecl : (NS.ModuleIdent, List PDecl) -> (APIDef.ModuleIdent)
+--convPDecl (mi, decls) = (convertModuleIdent mi)
+
 
 main : IO ()
 main = do 
@@ -248,12 +307,27 @@ main = do
           let fname = api_file
           (Just hsname) <- pure (mkPath $ changeSuffix "hs" $ path api_file)
             | _ => putStrLn "invalid path string"
---          putStrLn $ show $ (fname, hsname)
           Right contents <- readFile fname
             | Left _ => putStr $ "Read file error:" ++ fname
-          let Right (MkModule headerloc moduleNS imports documentation decls)  = runParser Nothing contents rule
+          let Right m@(MkModule headerloc moduleNS imports documentation decls)  = runParser Nothing contents rule
               | Left e => putStrLn "API spec format error"
+          let idrisFiles = map (Rel . reverse . unsafeUnfoldModuleIdent . path) imports
+          decls <- readModules (Rel ["spec"]) idrisFiles
           let 
+            str = renderString . layoutPretty defaultLayoutOptions . hsDef "apiDef" $ pretty {ann = ()} 
+                $  map convPDecl decls
+            wpath = "src/API.hs"
+--          Just wpath <- pure $  mkPath (Rel ["src", "API.hs"])
+--              _ => putStrln "path conversion failed"
+          Right f <- do
+                     putStrLn wpath
+                     openFile wpath WriteTruncate
+            | Left _ => putStrLn "open failed"
+          fPutStrLn f str
+          closeFile f
+{-              
+          let 
+              module = MkDModule 
               str = renderString . layoutPretty defaultLayoutOptions . hsDef "apiDef" $ pretty {ann = ()} 
                 $  map convertDecl . concatMap desugar $ decls
 
@@ -261,13 +335,12 @@ main = do
             | Left _ => pure ()
           fPutStrLn f str
           closeFile f
-
+-}
           pure ()
 
+hsName : List String -> String
+hsName ps = concat (intersperse "," ps) ++ ".hs"
 
 
+    
 
-tshow : (a : Type) -> (b : a) -> Int
-tshow Int y = y
-tshow String y = 2
-tshow _ _ = 3

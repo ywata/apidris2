@@ -34,6 +34,7 @@ apiInOut _ _ = Nothing
 data TypeName = Prim Const | DT DTerm | DD DDecl | None
   deriving(Show, Read)
 
+
 termName :: DTerm -> TypeName
 termName p@(DRef x) = DT p
 termName (DPi mbn l _) = termName l

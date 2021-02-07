@@ -1,10 +1,9 @@
 module Language.APIDef
 
 import Data.Maybe
-import Data.List
+import Data.List as L
 import Data.Strings
-import Data.Vect
-
+--import Data.Vect
 
 import Text.PrettyPrint.Prettyprinter
 import Text.PrettyPrint.Prettyprinter.Util
@@ -78,9 +77,10 @@ Pretty Const where
 parens: String -> String
 parens s = "("++ s ++ ")"
 
+
 export
 sconcat : String -> List String -> String
-sconcat sep xs = concat $ intersperse sep xs
+sconcat sep xs = concat $ L.intersperse sep xs
 
 -- Restricted version of Source syntax
 public export
@@ -96,7 +96,10 @@ mutual
   public export
   Name : Type
   Name = String
-  
+
+  ||| DModule corresond to Module in Idris/Syntax.idr
+  data DModule : Type where
+    MkModule : String -> Namespace -> List DDecl -> DModule
   ||| DDecl is a reduced version of PDecl.
   ||| Anything ommited becomes DDeclNotIMplemented.
   public export
@@ -248,12 +251,25 @@ qq = dquotes . pretty . escape '\''
 ms : Maybe String -> Doc ann
 ms = prettyMaybe q
 
-
+public export
 Pretty Namespace where
-  pretty (DMkNS xs) = p("DMkNS" <++> pretty xs)
+  pretty (DMkNS xs) = p("DMkNS" <++>  (encloseSep lbracket rbracket comma $ map q xs))
+public export
 Pretty ModuleIdent where
-  pretty (DMkMI xs) = p("DMkNS" <++> pretty xs)
+  pretty (DMkMI xs) = p("DMkMI" <++>  (encloseSep lbracket rbracket comma $ map q xs))
 
+
+export
+ppPair : (Pretty a, Pretty b) => (a, b) -> Doc ann
+ppPair (a, b) = p(pretty a <+> comma <+>pretty b)
+
+(Pretty a, Pretty b) => Pretty (List (Pair a b)) where
+  pretty xs = vcat $ map pretty xs
+
+
+--export
+--Pretty a => Pretty (List a) where
+--  pretty xs = vsep $ intersperse comma $ map pretty xs
 
 mutual
   public export
@@ -296,3 +312,9 @@ mutual
     pretty DUnit = pretty "DUnit"
     pretty (DBracketed x) = p ("DBracketed" <++> pretty x)
     pretty (DTermNotImplemented x) = p ("DTermNotImplemented" <++> qq x)
+
+Pretty DModule where
+  pretty (MkModule doc n decls) = p (pretty (show n) <++> comma <++> pretty decls)
+
+
+
