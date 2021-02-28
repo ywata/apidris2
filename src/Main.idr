@@ -5,8 +5,9 @@ import Data.Strings as S
 import Data.String.Extra as S
 import Data.Maybe
 
-import Idris.Syntax
 import Idris.Parser
+
+import Parser.Source as PS
 
 import System.File
 import System
@@ -253,17 +254,25 @@ mkPath NoPath = Nothing
 (</>) p NoPath = p
 
 
+
 readModule : Path -> Path -> IO (Either String Module)
 readModule pref p@(Rel _) = do
-  let (Just p) = mkPath $ pref </> changeSuffix "idr" p
+  let (Just p1) = mkPath $ pref </> changeSuffix "idr" p
      | _ => pure $ Left "path"
-  Right contents <- do
+  p1Exists <- exists p1
+  let (Just p2) = mkPath $ pref </> changeSuffix "lidr" p
+     | _ => pure $ Left "path"
+  p2Exists <- exists p2
+  let p = if p2Exists then p2 else p1
+  Right contents <- do 
                     putStrLn p
                     readFile p
-    | Left _ => pure $ Left "file read error"
-  let Right m@(MkModule headerloc moduleNS imports documentation decls)  = runParser Nothing contents rule
+    | Left _ => pure $ Left $ "file read error:"  ++ p
+  let Right (m@(MkModule headerloc moduleNS imports documentation decls)) = PS.runParser (isLitFile p) contents rule
     | Left e => pure $ Left "API spec format error"
+
   pure $ Right m
+
 
 readModule _ _ = pure $ Left "Abs path not supported"
 
@@ -271,7 +280,7 @@ readModules : Path -> List Path -> IO (List(NS.ModuleIdent, List PDecl))
 readModules _ [] = pure []
 readModules pref (f :: xs) = do
   Right p@(MkModule headerloc ns imports documentation decls) <- readModule pref f
-    | Left _ => readModules pref xs
+    | Left _ => pure []
   ps <- readModules pref xs
   pure $ (ns, decls) :: ps
     
@@ -306,10 +315,11 @@ main = do
 
           Right contents <- readFile api_file
             | Left _ => putStr $ "Read file error:" ++ api_file
-          let Right m@(MkModule headerloc moduleNS imports documentation decls)  = runParser Nothing contents rule
+          let Right m@(MkModule headerloc moduleNS imports documentation decls)  = runParser Nothing contents (prog "()")
               | Left e => putStrLn "API spec format error"
           let idrisFiles = map (Rel . reverse . unsafeUnfoldModuleIdent . path) imports
           decls <- readModules (Rel ["spec"]) idrisFiles
+
           let 
             str = renderString . layoutPretty defaultLayoutOptions . hsDef "apiDef" $ pretty {ann = ()} 
                 $  map convPDecl decls

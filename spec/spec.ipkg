@@ -1,6 +1,7 @@
 package api
 
 sourcedir = "."
+builddir = "spec_build"
 
 modules = API
 	, Test.API
