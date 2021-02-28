@@ -3,6 +3,7 @@ package api
 sourcedir = "."
 
 modules = API
+	, Test.API
 
 
 

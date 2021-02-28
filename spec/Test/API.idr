@@ -1,5 +1,7 @@
 module Test.API
 
-import API
+import Common
+
+UserId : Type
 
 userAPI : API UserId (Int, Double, String)
