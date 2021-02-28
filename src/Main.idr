@@ -301,14 +301,11 @@ convPDecl (mi, decls) = (convertModuleIdent mi, map convertDecl . concatMap desu
 
 main : IO ()
 main = do 
-          [bin, api_file]  <- getArgs
+          [bin, api_file, hs_api_file]  <- getArgs
             | _ => putStrLn "too many arguments"
 
-          let fname = api_file
-          (Just hsname) <- pure (mkPath $ changeSuffix "hs" $ path api_file)
-            | _ => putStrLn "invalid path string"
-          Right contents <- readFile fname
-            | Left _ => putStr $ "Read file error:" ++ fname
+          Right contents <- readFile api_file
+            | Left _ => putStr $ "Read file error:" ++ api_file
           let Right m@(MkModule headerloc moduleNS imports documentation decls)  = runParser Nothing contents rule
               | Left e => putStrLn "API spec format error"
           let idrisFiles = map (Rel . reverse . unsafeUnfoldModuleIdent . path) imports
@@ -316,31 +313,14 @@ main = do
           let 
             str = renderString . layoutPretty defaultLayoutOptions . hsDef "apiDef" $ pretty {ann = ()} 
                 $  map convPDecl decls
-            wpath = "src/API.hs"
---          Just wpath <- pure $  mkPath (Rel ["src", "API.hs"])
---              _ => putStrln "path conversion failed"
+
           Right f <- do
-                     putStrLn wpath
-                     openFile wpath WriteTruncate
+                     putStrLn hs_api_file
+                     openFile hs_api_file WriteTruncate
             | Left _ => putStrLn "open failed"
           fPutStrLn f str
           closeFile f
-{-              
-          let 
-              module = MkDModule 
-              str = renderString . layoutPretty defaultLayoutOptions . hsDef "apiDef" $ pretty {ann = ()} 
-                $  map convertDecl . concatMap desugar $ decls
-
-          Right f <- openFile hsname WriteTruncate
-            | Left _ => pure ()
-          fPutStrLn f str
-          closeFile f
--}
           pure ()
-
-hsName : List String -> String
-hsName ps = concat (intersperse "," ps) ++ ".hs"
-
 
     
 
