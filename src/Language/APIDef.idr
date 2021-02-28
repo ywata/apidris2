@@ -254,10 +254,10 @@ ms = prettyMaybe q
 
 public export
 Pretty Namespace where
-  pretty (DMkNS xs) = p("DMkNS" <++>  (encloseSep lbracket rbracket comma $ map q xs))
+  pretty (DMkNS xs) = p("DMkNS" <++>  (encloseSep lbracket rbracket comma . reverse $ map q xs))
 public export
 Pretty ModuleIdent where
-  pretty (DMkMI xs) = p("DMkMI" <++>  (encloseSep lbracket rbracket comma $ map q xs))
+  pretty (DMkMI xs) = p("DMkMI" <++>  (encloseSep lbracket rbracket comma . reverse $ map q xs))
 
 
 export
