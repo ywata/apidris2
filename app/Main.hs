@@ -1,17 +1,17 @@
 module Main where
-
 import Data.Maybe
 import Text.PrettyPrint
 
 import Language.APIDef
 import Language.APIDef.Utils
 import Language.Haskell
-import API ( apiDef )
+import API 
 import Language.APIDef.PrettyPrint
 
 main :: IO ()
 main = do
   putStrLn "DClaim"
+  print apiDef
 {-  
   let claims = map isAPITypeDecl $ filter isDClaim apiDef
       datadefs = filter isDData apiDef
