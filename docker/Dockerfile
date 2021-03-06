@@ -4,11 +4,8 @@ RUN adduser -D builder
 RUN addgroup builder wheel
 
 
-ENV HOME="/home/builder"
-
 RUN nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs
 RUN nix-channel --update
-
 
 RUN nix-env -iA nixpkgs.ghc
 RUN nix-env -iA nixpkgs.cabal-install
@@ -21,9 +18,14 @@ RUN nix-env -iA nixpkgs.bash
 RUN nix-env -iA nixpkgs.less
 RUN nix-env -iA nixpkgs.emacs
 RUN nix-env -iA nixpkgs.wget
+ENV HOME="/home/builder"
+RUN mkdir -p "${HOME}/.config/nixpkgs"
+ADD config.nix "${HOME}/.config/nixpkgs"
+#RUN nix-env -iA nixpkgs.apidris2pkgs
 
 USER builder
 WORKDIR "${HOME}"
+RUN cabal update
 
 
 # ar
@@ -42,12 +44,12 @@ ENV PATH="${IDRIS2_PREFIX}/bin:${PATH}"
 RUN cd Idris2 && make install-api
 
 ADD .bashrc "${HOME}"
-RUN cabal update
+
 
 
 RUN git clone https://github.com/ywata/apidris2.git
-RUN cd apidris2 && cabal v2-configure
 RUN cd apidris2 && make conv
+RUN cd apidris2 && cabal v2-configure
 RUN cd apidris2 && cabal v2-build
 #RUN cd apidris2 && make
 
