@@ -1,52 +1,48 @@
-# Stage 0: get Idris 2 source and build it using Racket
-FROM ubuntu:latest AS build
+FROM nixos/nix
 
-ENV DEBIAN_FRONTEND noninteractive
+RUN adduser -D builder
+RUN addgroup builder wheel
 
-RUN apt-get update && \
-    apt-get install -y chezscheme git make gcc libc-dev emacs
-RUN apt-get install -y sudo
 
-RUN useradd -ms /bin/bash -U builder
-USER builder
 ENV HOME="/home/builder"
 
 WORKDIR "${HOME}"
 
-RUN git clone https://github.com/idris-lang/Idris2.git && \
-     cd ./Idris2
+RUN nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs
+RUN nix-channel --update
 
-RUN cd ./Idris2 && make bootstrap SCHEME=scheme
+RUN nix-env -iA nixpkgs.ghc
+RUN nix-env -iA nixpkgs.cabal-install
+RUN nix-env -iA nixpkgs.idris2
+RUN nix-env -iA nixpkgs.git
+RUN nix-env -iA nixpkgs.gnumake
+RUN nix-env -iA nixpkgs.clang
+RUN nix-env -iA nixpkgs.chez
+RUN nix-env -iA nixpkgs.bash
+RUN nix-env -iA nixpkgs.less
+RUN nix-env -iA nixpkgs.emacs
+RUN nix-env -iA nixpkgs.wget
+
+
+USER builder
+
+ENV PATH="${PATH}:/nix/store/cp1sa3xxvl71cypiinw2c62i5s33chlr-binutils-2.35.1/bin/"
+
+RUN git clone https://github.com/idris-lang/Idris2.git
+RUN cd Idris2 && git checkout -b v0.3.0
+RUN cat Idris2/idris2api.ipkg |grep -v version > Idris2/idris2api.ipkg
+RUN cd Idris2 && make all
+RUN cd Idris2 && make install
 
 ENV IDRIS2="${HOME}/.idris2"
 ENV PATH="${IDRIS2}/bin:${PATH}"
 ENV IDRIS_PREFIX="${IDRIS2}"
 
-RUN cd ./Idris2 && make install
-#RUN cd ./Idris2 && make install-api
+RUN cabal update
+RUN ls -la "${HOME}/" > "${HOME}/ls"
+RUN cd Idris2 && make clean install-api
 
-# # # Stage 1: copy Idris 2 executable and libraries to the minimal Ubuntu image (with Racket)
-FROM ubuntu:latest
-ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt-get update && \
-    apt-get install -y chezscheme git make gcc libc-dev emacs
-
-RUN useradd -ms /bin/bash -U builder
-USER builder
-ENV HOME="/home/builder"
-WORKDIR "${HOME}"
-
-ENV IDRIS2="${HOME}/.idris2"
-ENV PATH="${IDRIS2}/bin:${PATH}"
-ENV IDRIS_PREFIX="${IDRIS2}"
-
-RUN git clone https://github.com/idris-lang/Idris2.git 
-
-COPY --from=build "${IDRIS2}" "${IDRIS2}" 
-
-ENV LD_LIBRARY_PATH="${IDRIS2}/lib:${LD_LIBRARY_PATH}"
-
-RUN cd Idris2 && make all install install-api
-
+RUN git clone https://github.com/ywata/apidris2.git
+RUN cd apidris2 && cabal v2-configure && cabal v2-build
 
