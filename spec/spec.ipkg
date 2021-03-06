@@ -1,5 +1,6 @@
 package api
 
+depends = idris2
 sourcedir = "."
 builddir = "spec_build"
 
