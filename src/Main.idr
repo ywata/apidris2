@@ -334,7 +334,6 @@ main = do
                      putStrLn hs_api_file
                      openFile hs_api_file WriteTruncate
             | Left _ => putStrLn "open failed"
-          let str = ""
           Right r <- fPutStrLn f str
             | _ => pure ()
           closeFile f
