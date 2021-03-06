@@ -1,0 +1,7 @@
+packages: .
+
+
+source-repository-package
+  type: git
+  location: https://github.com/ywata/language-plantuml.git
+  tag: 00354707dea6305c5a449f2533a565618066c397
