@@ -1,4 +1,5 @@
 module Main
+import System.File
 
 import Data.List 
 import Data.Strings as S
@@ -19,11 +20,11 @@ import Core.TT as CT
 import Core.Name as CN
 import Core.Name.Namespace as NS
 
-import Text.PrettyPrint.Prettyprinter
+import Text.PrettyPrint.Prettyprinter as PP
+import Text.PrettyPrint.Prettyprinter.Doc as PP
 import Text.PrettyPrint.Prettyprinter.Util
 
 import Text.PrettyPrint.Prettyprinter.Render.String
-
 showConst : Constant -> String
 showConst (I x) = "I "
 showConst (BI x) = "BI "
@@ -108,7 +109,7 @@ mutual
   convertTerm p@(PRunElab fc x) = DTermNotImplemented ("PRunElab")
   convertTerm p@(PHole fc bracket holename) = DHole (show holename)
   convertTerm p@(PType fc) = DType
-  convertTerm p@(PAs fc x pattern) = DTermNotImplemented ("PAs")
+  convertTerm p@(PAs fc nfc x pattern) = DTermNotImplemented ("PAs")
   convertTerm p@(PDotted fc x) = DTermNotImplemented ("PDotted")
   convertTerm p@(PImplicit fc) = DImplicit
   convertTerm p@(PInfer fc) = DInfer
@@ -118,7 +119,11 @@ mutual
   convertTerm p@(PSectionR fc x y) = DTermNotImplemented ("PSectionR")
   convertTerm p@(PEq fc x y) = DTermNotImplemented ("PEq")
   convertTerm p@(PBracketed fc x) = DBracketed (convertTerm x)
-  convertTerm p@(PDoBlock fc x xs) = DTermNotImplemented ("PDoBlock")
+
+
+  convertTerm p@(PString fc ls) = DTermNotImplemented ("PString")  
+  convertTerm p@(PMultiline fc i lls) = DTermNotImplemented ("PMultiline")
+  convertTerm p@(PDoBlock fc x xs) = DTermNotImplemented ("PDoBlock")  
   convertTerm p@(PBang fc x) = DTermNotImplemented ("PBang")
   convertTerm p@(PIdiom fc x) = DTermNotImplemented ("PIdiom")
   convertTerm p@(PList fc xs) = DList (map convertTerm xs)
@@ -145,7 +150,7 @@ mutual
 
 
   convertTypeDecl : IS.PTypeDecl -> DTypeDecl
-  convertTypeDecl (MkPTy fc n doc type) = MkDTy (convertName n) doc (convertTerm type)
+  convertTypeDecl (MkPTy fc nfc n doc type) = MkDTy (convertName n) doc (convertTerm type)
 
 
   convertDataDecl : IS.PDataDecl -> DDataDecl
@@ -194,7 +199,7 @@ isKnownType (DDecl, y) = True
 isKnownType (x, y) = False
 
 
-hsDef : String -> Doc ann -> Doc ann
+hsDef : String -> PP.Doc ann -> PP.Doc ann
 hsDef name d = pretty "module API where" <+> hardline <+> 
                pretty "import Language.APIDef" <+> hardline <+>
                pretty name <++> pretty ":: [(ModuleIdent, [DDecl])]" <+> hardline <+> pretty name <++> equals <++> d
@@ -268,7 +273,7 @@ readModule pref p@(Rel _) = do
                     putStrLn p
                     readFile p
     | Left _ => pure $ Left $ "file read error:"  ++ p
-  let Right (m@(MkModule headerloc moduleNS imports documentation decls)) = PS.runParser (isLitFile p) contents rule
+  let Right (m@(MkModule headerloc moduleNS imports documentation decls)) = PS.runParser "" (isLitFile p) contents rule
     | Left e => pure $ Left "API spec format error"
 
   pure $ Right m
@@ -283,7 +288,8 @@ readModules pref (f :: xs) = do
     | Left _ => pure []
   ps <- readModules pref xs
   pure $ (ns, decls) :: ps
-    
+
+{-
 writeAST : String -> List DDecl -> IO ()
 writeAST file decls = 
   do
@@ -298,7 +304,7 @@ writeAST file decls =
       | Left _ => pure ()
     fPutStrLn f str
     closeFile f
-    
+-}    
 
 convPDecl : (NS.ModuleIdent, List PDecl) -> (APIDef.ModuleIdent, List DDecl)
 convPDecl (mi, decls) = (convertModuleIdent mi, map convertDecl . concatMap desugar $ decls)
@@ -315,7 +321,7 @@ main = do
 
           Right contents <- readFile api_file
             | Left _ => putStr $ "Read file error:" ++ api_file
-          let Right m@(MkModule headerloc moduleNS imports documentation decls)  = runParser Nothing contents (prog "()")
+          let Right m@(MkModule headerloc moduleNS imports documentation decls)  = runParser "" Nothing contents (prog "()")
               | Left e => putStrLn "API spec format error"
           let idrisFiles = map (Rel . reverse . unsafeUnfoldModuleIdent . path) imports
           decls <- readModules (Rel ["spec"]) idrisFiles
@@ -328,9 +334,10 @@ main = do
                      putStrLn hs_api_file
                      openFile hs_api_file WriteTruncate
             | Left _ => putStrLn "open failed"
-          fPutStrLn f str
+          let str = ""
+          Right r <- fPutStrLn f str
+            | _ => pure ()
           closeFile f
           pure ()
 
-    
 
