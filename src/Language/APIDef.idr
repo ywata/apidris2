@@ -308,7 +308,7 @@ mutual
     pretty (DPrimVal x) = p ("DPrimVal" <++> pretty x)
     pretty DImplicit = pretty "DImplicit"
     pretty DInfer = pretty "DInfoer"
-    pretty (DHole x) = p ("DHole" <++> q x)
+    pretty (DHole x) = p ("DHole" <++> pretty x)
     pretty DType = pretty "DType"
     pretty (DPair x y) = p ("DPair" <++> p(pretty x) <++> p(pretty y))
     pretty (DList xs) = p ("DList" <++> encloseSep lbracket rbracket comma (map pretty xs))
