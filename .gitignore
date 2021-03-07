@@ -1,0 +1,6 @@
+cabal.project.local*
+.stack-work
+dist-newstyle
+build
+*.preproc
+app/API.hs
