@@ -2,6 +2,7 @@
 module Main where
 import System.Exit
 import Data.Maybe
+import qualified Data.Text as T hiding(map)
 import Text.PrettyPrint
 
 import Language.APIDef
@@ -10,19 +11,35 @@ import Language.Haskell
 
 import qualified Language.PlantUML as P
 
-import API 
+import API (apiDef)
+import PlantUMLTools
+import APIDefTools
 import Language.APIDef.PrettyPrint
 import Control.Monad.IO.Class
 import qualified Options.Declarative as D
 
-analyze :: D.Arg "idris file name" FilePath -> D.Cmd "analyze idris file to generate haskell code" ()
-analyze file =
-    liftIO $ putStrLn $ show (D.get file) ++ "!" 
+
+xref :: [(ModuleIdent, [Maybe T.Text])] -> Maybe T.Text ->   [(ModuleIdent, Maybe T.Text)]
+xref ds n = concatMap (flip xref' n) ds
+  where
+    xref' :: (ModuleIdent, [Maybe T.Text]) -> Maybe T.Text ->  [(ModuleIdent, Maybe T.Text)]
+    xref' (mi, ds) n = zip (repeat mi) (filter (n ==) ds)
+
+txt :: (ModuleIdent, [Maybe String]) -> (ModuleIdent, [Maybe T.Text])
+txt (mi, mbs) = (mi, map (T.pack <$>) mbs)
+
+
+analyze :: D.Arg "PlantUML file name" FilePath -> D.Cmd "analyze PlantUML to compair against API.hs" ()
+analyze file = do
+  let pumlFile = (D.get file)
+  plantUML <- liftIO $ P.parsePlantUMLFile pumlFile
+  let pdefs = fmap (fmap (map getMessage . filter isArrowDef))  plantUML
+      ddefs = map getNames $ apiDef
+  liftIO $ print $ fmap (fmap $ map (xref (map txt ddefs)))  $ pdefs
 
 preprocess :: D.Arg "files" [FilePath] -> D.Cmd "Preprocess PlantUML files" ()
 preprocess files =
   liftIO $ putStrLn $ show (D.get files)
-  
 
 
 checkPlantUML :: D.Arg "idris file name" [FilePath] -> D.Cmd "check PlantUML sequence message against API declaration" ()
@@ -39,6 +56,21 @@ checkPUML (f : fs) = do
   print ps
   checkPUML fs
 
+showAPI :: D.Cmd "show API definition in Haskell" ()
+showAPI =
+  liftIO $ putStrLn $ show apiDef
+
+showPlantUML :: D.Arg "Show PlantUML file" FilePath -> D.Cmd "show PlantUML file" ()
+showPlantUML file = do
+  let f = D.get file
+  go f
+  where
+    go file = liftIO $ do
+      pres <- P.parsePlantUMLFile file
+      case pres of
+        Right grm -> print grm
+        _ -> print "parse err"
+        
 
 main :: IO ()
 main = do
@@ -47,6 +79,8 @@ main = do
       D.subCmd "analyze" analyze
     , D.subCmd "check" checkPlantUML
     , D.subCmd "preprocess" preprocess
+    , D.subCmd "show" showAPI
+    , D.subCmd "showp" showPlantUML
     ]
 {-    
   putStrLn "DClaim"
