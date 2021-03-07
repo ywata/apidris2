@@ -6,6 +6,8 @@ import Data.Maybe
 import qualified Data.Text as T hiding(map, concatMap)
 import Text.PrettyPrint
 
+import Text.Show.Unicode (uprint)
+
 import Language.APIDef
 import Language.APIDef.Utils
 import Language.Haskell
@@ -41,8 +43,8 @@ analyze file = do
   plantUML <- liftIO $ P.parsePlantUMLFile pumlFile
   let pdefs = fmap (fmap (map getMessage . filter isArrowDef))  plantUML
       ddefs = map getNames $ apiDef
-  liftIO $ print $ fmap (fmap $ map (xref ddefs))  $ pdefs
-  liftIO $ print $ fmap (fmap $ map (nxref ddefs))  $ pdefs  
+  liftIO $ uprint $ fmap (fmap $ map (xref ddefs))  $ pdefs
+  liftIO $ uprint $ fmap (fmap $ map (nxref ddefs))  $ pdefs  
 
 preprocess :: D.Arg "files" [FilePath] -> D.Cmd "Preprocess PlantUML files" ()
 preprocess files =
