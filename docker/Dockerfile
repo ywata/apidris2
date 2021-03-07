@@ -43,15 +43,13 @@ ENV IDRIS2_PREFIX="${HOME}/.idris2"
 ENV PATH="${IDRIS2_PREFIX}/bin:${PATH}"
 RUN cd Idris2 && make install-api
 
+RUN git clone https://github.com/ywata/apidris2.git
 ADD .bashrc "${HOME}"
 
-
-
-RUN git clone https://github.com/ywata/apidris2.git
 RUN cd apidris2 && make conv
 RUN cd apidris2 && cabal v2-configure
 RUN cd apidris2 && cabal v2-build
-#RUN cd apidris2 && make
+RUN cd apidris2 && make
 
 
 #unset IDRIS2_PREFIX
