@@ -1,0 +1,3 @@
+export IDRIS2_PREFIX=$HOME/.idris2
+PATH=$IDRIS2_PREFIX/bin:$PATH
+
