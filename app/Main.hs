@@ -1,8 +1,9 @@
 {-# LANGUAGE DataKinds #-}
 module Main where
+import Control.Monad (join)
 import System.Exit
 import Data.Maybe
-import qualified Data.Text as T hiding(map)
+import qualified Data.Text as T hiding(map, concatMap)
 import Text.PrettyPrint
 
 import Language.APIDef
@@ -25,6 +26,15 @@ xref ds n = concatMap (flip xref' n) ds
     xref' :: (ModuleIdent, [Maybe T.Text]) -> Maybe T.Text ->  [(ModuleIdent, Maybe T.Text)]
     xref' (mi, ds) n = zip (repeat mi) (filter (n ==) ds)
 
+
+nxref :: [(ModuleIdent, [Maybe T.Text])] -> Maybe T.Text -> Maybe T.Text
+nxref ds n = case found of
+  [] -> join $ Just n
+  _ -> Nothing
+  where
+    names = concatMap snd ds
+    found = filter (n ==) names
+
 txt :: (ModuleIdent, [Maybe String]) -> (ModuleIdent, [Maybe T.Text])
 txt (mi, mbs) = (mi, map (T.pack <$>) mbs)
 
@@ -36,6 +46,7 @@ analyze file = do
   let pdefs = fmap (fmap (map getMessage . filter isArrowDef))  plantUML
       ddefs = map getNames $ apiDef
   liftIO $ print $ fmap (fmap $ map (xref (map txt ddefs)))  $ pdefs
+  liftIO $ print $ fmap (fmap $ map (nxref (map txt ddefs)))  $ pdefs  
 
 preprocess :: D.Arg "files" [FilePath] -> D.Cmd "Preprocess PlantUML files" ()
 preprocess files =
