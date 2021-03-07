@@ -1,0 +1,8 @@
+@startuml
+actor "Test" as T
+database "TestDB" as TDB
+
+T -> TDB :ユーザ一覧
+T -> K : データ保存
+
+@enduml

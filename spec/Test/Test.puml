@@ -1,0 +1,13 @@
+@startuml
+
+participant "Test.API" as T1
+participant "Test" as T
+
+
+A -> T1 :テスト
+return 結果
+
+
+
+@enduml
+
