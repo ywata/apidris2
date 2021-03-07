@@ -4,3 +4,4 @@ dist-newstyle
 build
 *.preproc
 app/API.hs
+spec/spec_build
