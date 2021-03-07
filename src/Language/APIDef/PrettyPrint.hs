@@ -2,6 +2,7 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 module Language.APIDef.PrettyPrint where
 
+import Data.Text as T
 import Language.APIDef.APIDef
 import Text.PrettyPrint
 
@@ -11,16 +12,16 @@ prettyMaybe f (Just v) = pretty "Just" <+> f v
 
 p :: Doc -> Doc
 p = parens
-q :: String -> Doc
+q :: T.Text -> Doc
 q = doubleQuotes . pretty
 
-escape :: Char -> String -> String
+escape :: Char -> T.Text -> T.Text
 escape _ a = a
 
-qq :: String -> Doc
+qq :: T.Text -> Doc
 qq = doubleQuotes . pretty . escape '\''
 
-ms :: Maybe String -> Doc
+ms :: Maybe T.Text -> Doc
 ms = prettyMaybe q
 
 class Pretty a where
@@ -29,7 +30,8 @@ class Pretty a where
 instance Pretty String where
   pretty = text
 
-
+instance Pretty T.Text where
+  pretty = text . T.unpack
 
 
 instance Pretty Const where

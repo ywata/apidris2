@@ -8,7 +8,7 @@ import Control.Monad
 
 type APIType = (ModuleIdent, [DDecl])
 
-getNames :: APIType -> (ModuleIdent, [Maybe String])
+getNames :: APIType -> (ModuleIdent, [Maybe T.Text])
 getNames (mi, ds) = (mi, map getName ds)
 
 isDClaim, isDRecord, isDData, isDataDecl :: DDecl -> Bool

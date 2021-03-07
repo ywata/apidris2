@@ -200,7 +200,8 @@ isKnownType (x, y) = False
 
 
 hsDef : String -> PP.Doc ann -> PP.Doc ann
-hsDef name d = pretty "module API where" <+> hardline <+> 
+hsDef name d = pretty "{-# LANGUAGE OverloadedStrings #-}" <+> hardline <+>
+               pretty "module API where" <+> hardline <+> 
                pretty "import Language.APIDef" <+> hardline <+>
                pretty name <++> pretty ":: [(ModuleIdent, [DDecl])]" <+> hardline <+> pretty name <++> equals <++> d
 

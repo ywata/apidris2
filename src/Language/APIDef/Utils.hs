@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Language.APIDef.Utils (apiInOut
                              , isAPITypeDecl
                              , isDClaim
@@ -9,7 +10,7 @@ module Language.APIDef.Utils (apiInOut
                              , namedType
                              , TypeName(..)
                              ) where
-
+import Data.Text as T
 import Language.APIDef.APIDef 
 
 isNonFunctionalType :: DTerm -> Bool

@@ -1,7 +1,9 @@
 {-# LANGUAGE GADTs #-}
 module Language.APIDef.APIDef where
 
-type Name = String
+import Data.Text as T
+
+type Name = T.Text
 
 data Const
     = CI Int
@@ -11,7 +13,7 @@ data Const
     | CB16 Int
     | CB32 Int
     | CB64 Integer
-    | CStr String
+    | CStr T.Text
     | CCh Char
     | CDb Double
     | CWorldVal
@@ -29,25 +31,25 @@ data Const
     deriving(Show, Read)
 
 
-data Namespace = DMkNS [String]
+data Namespace = DMkNS [T.Text]
   deriving(Show, Read)
 
 data ModuleIdent where
-  DMkMI :: [String] -> ModuleIdent
+  DMkMI :: [T.Text] -> ModuleIdent
   deriving(Show, Read)
 
 data DDecl where
   DClaim :: DTypeDecl -> DDecl
   DDef :: [DClause] -> DDecl
-  DData :: String -> DDataDecl -> DDecl
-  DRecord :: String -> Name ->  Maybe Name -> [DField] -> DDecl -- should we keep params?
+  DData :: T.Text -> DDataDecl -> DDecl
+  DRecord :: T.Text -> Name ->  Maybe Name -> [DField] -> DDecl -- should we keep params?
   DMutual :: [DDecl] -> DDecl
   DNamespace :: Namespace -> [DDecl] -> DDecl
-  DDeclNotImplemented:: String -> DDecl
+  DDeclNotImplemented:: T.Text -> DDecl
   deriving(Show, Read)
 
 data DField where
-  MkDField :: String -> Name -> DTerm -> DField
+  MkDField :: T.Text -> Name -> DTerm -> DField
   deriving(Show, Read)
 
 data DTerm where
@@ -59,27 +61,27 @@ data DTerm where
   DPrimVal :: Const -> DTerm
   DImplicit :: DTerm    
   DInfer :: DTerm
-  DHole :: String -> DTerm
+  DHole :: T.Text -> DTerm
   DType :: DTerm
   DList :: [DTerm] -> DTerm
   DPair :: DTerm -> DTerm -> DTerm
   DUnit :: DTerm
   DBracketed ::  DTerm -> DTerm
-  DTermNotImplemented :: String -> DTerm
+  DTermNotImplemented :: T.Text -> DTerm
   deriving(Show, Read)
 
 data DClause where
   MkDPatClause :: DTerm -> DTerm -> DClause
-  MkDClauseNotImplemented :: String -> DClause
+  MkDClauseNotImplemented :: T.Text -> DClause
   deriving(Show, Read)
 
 data DTypeDecl where
-  MkDTy :: Name -> String -> DTerm -> DTypeDecl
+  MkDTy :: Name -> T.Text -> DTerm -> DTypeDecl
   deriving(Show, Read)
 
 data DDataDecl where
   MkDData :: Name -> DTerm -> [DTypeDecl] -> DDataDecl
 --  MkDLater :: Name -> DTerm -> DDataDecl
-  MkDataDeclNotImplemented :: String -> DDataDecl
+  MkDataDeclNotImplemented :: T.Text -> DDataDecl
   deriving(Show, Read)
 

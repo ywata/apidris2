@@ -35,18 +35,14 @@ nxref ds n = case found of
     names = concatMap snd ds
     found = filter (n ==) names
 
-txt :: (ModuleIdent, [Maybe String]) -> (ModuleIdent, [Maybe T.Text])
-txt (mi, mbs) = (mi, map (T.pack <$>) mbs)
-
-
 analyze :: D.Arg "PlantUML file name" FilePath -> D.Cmd "analyze PlantUML to compair against API.hs" ()
 analyze file = do
   let pumlFile = (D.get file)
   plantUML <- liftIO $ P.parsePlantUMLFile pumlFile
   let pdefs = fmap (fmap (map getMessage . filter isArrowDef))  plantUML
       ddefs = map getNames $ apiDef
-  liftIO $ print $ fmap (fmap $ map (xref (map txt ddefs)))  $ pdefs
-  liftIO $ print $ fmap (fmap $ map (nxref (map txt ddefs)))  $ pdefs  
+  liftIO $ print $ fmap (fmap $ map (xref ddefs))  $ pdefs
+  liftIO $ print $ fmap (fmap $ map (nxref ddefs))  $ pdefs  
 
 preprocess :: D.Arg "files" [FilePath] -> D.Cmd "Preprocess PlantUML files" ()
 preprocess files =
