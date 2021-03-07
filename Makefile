@@ -15,7 +15,7 @@ hs : conv
 
 APIDRIS2=./dist-newstyle/build/x86_64-osx/ghc-8.10.4/apidris2-0.0.0.0/x/apidris2-exe/build/apidris2-exe/apidris2-exe
 run : hs
-	${APIDRIS2}
+	${APIDRIS2} analyze spec/Test/Test.preproc
 
 try :
 	${APIDRIS2}
