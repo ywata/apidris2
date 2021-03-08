@@ -44,7 +44,8 @@ analyze file = do
   let pdefs = fmap (fmap (map getMessage . filter isArrowDef))  plantUML
       ddefs = map getNames $ apiDef
   liftIO $ uprint $ fmap (fmap $ map (xref ddefs))  $ pdefs
-  liftIO $ uprint $ fmap (fmap $filter isJust .  map (nxref ddefs))  $ pdefs
+  liftIO $ uprint $ fmap (fmap $ filter isJust .  map (nxref ddefs))  $ pdefs
+  liftIO $ uprint $ fmap (fmap $ filter isJust .  map getAPI)  $ apiDef
 
 preprocess :: D.Arg "files" [FilePath] -> D.Cmd "Preprocess PlantUML files" ()
 preprocess files =
