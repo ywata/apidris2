@@ -92,19 +92,4 @@ main = do
     , D.subCmd "show" showAPI
     , D.subCmd "showp" showPlantUML
     ]
-{-    
-  putStrLn "DClaim"
-  print apiDef
-
-  let claims = map isAPITypeDecl $ filter isDClaim apiDef
-      datadefs = filter isDData apiDef
-      records = filter isDRecord apiDef
-  print claims
-  print $ map (maybe Nothing (\(_, i, o) -> Just (termName i, termName o))) claims
-  let user = map (namedType "User") apiDef
-      date = map (namedType "Date") apiDef
-  putStrLn . render $ pretty user
-  putStrLn . render $ pretty date
--}  
-  pure ()
 
