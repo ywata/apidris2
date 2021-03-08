@@ -38,7 +38,7 @@ isAPI :: DDecl -> Bool
 isAPI (DClaim (MkDTy _ _ (DApp (DApp (DRef "API") _) _))) = False
 isAPI _ = False
 
---getAPI :: DDecl -> Maybe (Name, DTerm, DTerm)
+getAPI :: DDecl -> Maybe (Name, DTerm, DTerm)
 getAPI (DClaim (MkDTy name _ (DApp (DApp (DRef "API") input) output))) = Just (name, input, output)
 getAPI _ = Nothing
 
@@ -46,14 +46,21 @@ isAPIName :: Name -> DDecl -> Bool
 isAPIName n (DClaim (MkDTy name _ (DApp (DApp  _ _) _))) = n == name
 isAPIName _ _ = False
 
-
-
 getName :: DDecl -> Maybe Name
 getName (DClaim (MkDTy name _ _)) = Just name
 getName (DRecord _ name _ _) = Just name
 getName (DData _ (MkDData name _ _)) = Just name
 getName _ = Nothing
 
+hasName :: DDecl -> Name -> Bool
+hasName d n = getName d == Just n
 
+
+findDefinition :: [DDecl] -> Name -> [DDecl]
+findDefinition [] n = []
+findDefinition (d:ds) n = if d `hasName` n then
+                            d : (findDefinition ds n)
+                          else
+                            findDefinition ds n
 
 

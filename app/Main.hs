@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Main where
 import Control.Monad (join)
 import System.Exit
@@ -46,6 +47,7 @@ analyze file = do
   liftIO $ uprint $ fmap (fmap $ map (xref ddefs))  $ pdefs
   liftIO $ uprint $ fmap (fmap $ filter isJust .  map (nxref ddefs))  $ pdefs
   liftIO $ uprint $ fmap (fmap $ filter isJust .  map getAPI)  $ apiDef
+  liftIO $ uprint $ fmap (fmap $ (flip findDefinition) "userAPI" )  $ apiDef
 
 preprocess :: D.Arg "files" [FilePath] -> D.Cmd "Preprocess PlantUML files" ()
 preprocess files =

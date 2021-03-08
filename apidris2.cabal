@@ -44,7 +44,6 @@ library
 
 executable apidris2-exe
   main-is: Main.hs
-  packages: language-plantuml
   other-modules:
       Paths_apidris2
     , API
@@ -79,4 +78,5 @@ test-suite apidris2-test
                 , optparse-declarative >= 0.4.0
                 , pretty >= 1.1.3.0
                 , text >= 1.2.4.0
+                    , hspec >= 2.7.0
   default-language: Haskell2010
