@@ -19,8 +19,6 @@ RUN nix-env -iA nixpkgs.less
 RUN nix-env -iA nixpkgs.emacs
 RUN nix-env -iA nixpkgs.wget
 ENV HOME="/home/builder"
-RUN mkdir -p "${HOME}/.config/nixpkgs"
-ADD config.nix "${HOME}/.config/nixpkgs"
 #RUN nix-env -iA nixpkgs.apidris2pkgs
 
 USER builder
@@ -31,7 +29,7 @@ RUN cabal update
 # ar
 ENV PATH="${PATH}:/nix/store/cp1sa3xxvl71cypiinw2c62i5s33chlr-binutils-2.35.1/bin/"
 
-Run git clone https://github.com/idris-lang/Idris2.git
+RUN git clone https://github.com/idris-lang/Idris2.git
 RUN cd Idris2 && git checkout -b v0.3.0
 #RUN cat Idris2/idris2api.ipkg |grep -v version > Idris2/idris2api.ipkg
 
@@ -49,7 +47,6 @@ ADD .bashrc "${HOME}"
 RUN cd apidris2 && make conv
 RUN cd apidris2 && cabal v2-configure
 RUN cd apidris2 && cabal v2-build
-RUN cd apidris2 && make
 
 
 #unset IDRIS2_PREFIX
