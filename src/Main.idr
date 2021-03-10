@@ -317,7 +317,7 @@ convPDecl (mi, decls) = (convertModuleIdent mi, map convertDecl . concatMap desu
 
 main : IO ()
 main = do 
-          [bin, api_file, hs_api_file]  <- getArgs
+          [bin, spec_dir, api_file, hs_api_file]  <- getArgs
             | _ => putStrLn "too many arguments"
 
           Right contents <- readFile api_file
@@ -325,7 +325,7 @@ main = do
           let Right m@(MkModule headerloc moduleNS imports documentation decls)  = runParser "" Nothing contents (prog "()")
               | Left e => putStrLn "API spec format error"
           let idrisFiles = map (Rel . reverse . unsafeUnfoldModuleIdent . path) imports
-          decls <- readModules (Rel ["spec"]) idrisFiles
+          decls <- readModules (Rel [spec_dir]) idrisFiles
 
           let 
             str = renderString . layoutPretty defaultLayoutOptions . hsDef "apiDef" $ pretty {ann = ()} 

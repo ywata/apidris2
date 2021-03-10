@@ -5,7 +5,7 @@ idr : typecheck
 	idris2 --build apidris2.ipkg
 
 conv: idr
-	./build/exec/apidris2 test/API.idr app/API.hs
+	./build/exec/apidris2 test test/API.idr app/API.hs
 
 typecheck :
 	cd test; idris2 --typecheck test.ipkg
