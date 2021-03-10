@@ -5,10 +5,10 @@ idr : typecheck
 	idris2 --build apidris2.ipkg
 
 conv: idr
-	./build/exec/apidris2 spec/API.idr app/API.hs
+	./build/exec/apidris2 test/API.idr app/API.hs
 
 typecheck :
-	cd spec; idris2 --typecheck spec.ipkg
+	cd test; idris2 --typecheck test.ipkg
 
 hs : conv
 	cabal v2-build

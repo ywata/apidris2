@@ -2,7 +2,7 @@ package api
 
 depends = idris2
 sourcedir = "."
-builddir = "spec_build"
+builddir = "test_build"
 
 modules = API
 	, Test.API
