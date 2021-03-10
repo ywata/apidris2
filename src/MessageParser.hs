@@ -29,15 +29,17 @@ ident :: MonadParsec Char T.Text m => m T.Text
 ident = T.pack <$> many1 letterChar
 
 
---
-data API where
-  API :: T.Text -> [T.Text] -> API
+-- | Message has 0 or more arguments between '(' and ')'.
+-- | Signal has no argument.
+data Message where
+  Message :: T.Text -> [T.Text] -> Message
+  Signal  :: T.Text -> Message
   deriving(Show, Eq)
 
 
-
-api :: MonadParsec Char T.Text m => m API
-api = API <$> (hspaceConsumer *> lexeme ident) <*> between (char' '(') (char' ')') (cons <|> nil)
+api :: MonadParsec Char T.Text m => m Message
+api = try (Message <$> (hspaceConsumer *> lexeme ident) <*> between (char' '(') (char' ')') (cons <|> nil))
+  <|> Signal . T.pack <$> (hspaceConsumer *> many letterChar)
   where
     cons = do
       x <- lexeme ident
@@ -45,7 +47,7 @@ api = API <$> (hspaceConsumer *> lexeme ident) <*> between (char' '(') (char' ')
       return $ x : xs
       
     list' = lexeme (char ',') *> lexeme ident
-    -- may consume nothing
+    -- nil can consume nothing. This should be called after cons.
     nil = hspace >> pure []
     char' = lexeme . char
       
