@@ -59,7 +59,7 @@ executable apidris2-exe
   build-depends:
                       apidris2
                 , base >=4.7 && <5
-                , hspec >= 2.7.8
+                , hspec >= 2.7.0
                 , language-plantuml
                 , language-plantuml >= 0.0.1
                 , megaparsec >= 8.0.0
@@ -74,7 +74,8 @@ test-suite apidris2-test
   main-is: Spec.hs
   other-modules:
       Paths_apidris2
-      , MessageParserSpec
+    , MessageParserSpec
+    , APIDefToolsSpec    
   hs-source-dirs:
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
@@ -82,10 +83,10 @@ test-suite apidris2-test
                 apidris2
                 , base >=4.7 && <5
                 , hspec >= 2.7.0
-                , hspec >= 2.7.8
                 , language-plantuml >= 0.0.1
                 , megaparsec >= 8.0.0
                 , optparse-declarative >= 0.4.0
                 , pretty >= 1.1.3.0
                 , text >= 1.2.4.0
+  build-tool-depends: hspec-discover:hspec-discover
   default-language: Haskell2010

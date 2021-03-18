@@ -328,7 +328,7 @@ main = do
           decls <- readModules (Rel [spec_dir]) idrisFiles
 
           let 
-            str = renderString . layoutPretty defaultLayoutOptions . hsDef "apiDef" $ pretty {ann = ()} 
+            str = renderString . layoutPretty defaultLayoutOptions . hsDef "apiDefs" $ pretty {ann = ()} 
                 $  map convPDecl decls
 
           Right f <- do
