@@ -142,7 +142,7 @@ mutual
 
   convertClause : IS.PClause -> DClause
   convertClause (MkPatClause fc lhs rhs whereblock) = MkDPatClause (convertTerm lhs) (convertTerm rhs)
-  convertClause (MkWithClause fc lhs wval xs ys) = MkDClauseNotImplemented "MKWIthClause"
+  convertClause (MkWithClause fc lhs wval xs ys zs) = MkDClauseNotImplemented "MKWIthClause"
   convertClause (MkImpossible fc lhs) = MkDClauseNotImplemented  "MkIMpossible"
 
   convertField : IS.PField -> DField
